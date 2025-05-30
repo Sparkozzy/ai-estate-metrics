@@ -1,14 +1,15 @@
 
 import React, { useState, useEffect } from 'react';
-import { TrendingUp, Phone, PhoneCall, Calendar, Target, Clock, BarChart3 } from 'lucide-react';
+import { TrendingUp, Phone, PhoneCall, Calendar, Target, Clock, BarChart3, DollarSign } from 'lucide-react';
 import MetricsCard from '../components/MetricsCard';
 import PerformanceChart from '../components/PerformanceChart';
 import FunnelChart from '../components/FunnelChart';
 import HeatmapChart from '../components/HeatmapChart';
+import CostDurationChart from '../components/CostDurationChart';
 import DateFilter from '../components/DateFilter';
 import { useToast } from '@/hooks/use-toast';
 
-// Simulated data structure matching Supabase schema
+// Simulated data structure matching updated Supabase schema
 const mockLeads = [
   {
     id: 1,
@@ -18,7 +19,10 @@ const mockLeads = [
     dateTime: '2025-05-28T17:00:00-03:00',
     tentativas: 3,
     atendido: true,
-    reuniao_marcada: 'Sim'
+    reuniao_marcada: 'Sim',
+    duracao: 180,
+    custo_total: 45,
+    data_horario_ligacao: '2025-05-28T17:00:00-03:00'
   },
   {
     id: 2,
@@ -28,7 +32,10 @@ const mockLeads = [
     dateTime: '—',
     tentativas: 1,
     atendido: false,
-    reuniao_marcada: '—'
+    reuniao_marcada: '—',
+    duracao: 30,
+    custo_total: 12,
+    data_horario_ligacao: '2025-05-29T14:30:00-03:00'
   },
   {
     id: 3,
@@ -38,7 +45,10 @@ const mockLeads = [
     dateTime: '—',
     tentativas: 2,
     atendido: true,
-    reuniao_marcada: '—'
+    reuniao_marcada: '—',
+    duracao: 120,
+    custo_total: 25,
+    data_horario_ligacao: '2025-05-29T15:15:00-03:00'
   },
   {
     id: 4,
@@ -48,7 +58,10 @@ const mockLeads = [
     dateTime: '—',
     tentativas: 1,
     atendido: false,
-    reuniao_marcada: '—'
+    reuniao_marcada: '—',
+    duracao: 45,
+    custo_total: 15,
+    data_horario_ligacao: '2025-05-29T16:00:00-03:00'
   },
   {
     id: 5,
@@ -58,7 +71,10 @@ const mockLeads = [
     dateTime: '—',
     tentativas: 2,
     atendido: true,
-    reuniao_marcada: '—'
+    reuniao_marcada: '—',
+    duracao: 210,
+    custo_total: 52,
+    data_horario_ligacao: '2025-05-29T16:45:00-03:00'
   },
   // Additional mock data for better analytics
   {
@@ -69,7 +85,10 @@ const mockLeads = [
     dateTime: '2025-05-30T10:00:00-03:00',
     tentativas: 2,
     atendido: true,
-    reuniao_marcada: 'Sim'
+    reuniao_marcada: 'Sim',
+    duracao: 300,
+    custo_total: 75,
+    data_horario_ligacao: '2025-05-28T14:30:00-03:00'
   },
   {
     id: 7,
@@ -79,7 +98,10 @@ const mockLeads = [
     dateTime: '—',
     tentativas: 3,
     atendido: false,
-    reuniao_marcada: '—'
+    reuniao_marcada: '—',
+    duracao: 60,
+    custo_total: 18,
+    data_horario_ligacao: '2025-05-28T16:45:00-03:00'
   }
 ];
 
@@ -89,7 +111,7 @@ const Index = () => {
   const [dateRange, setDateRange] = useState({ start: '', end: '' });
   const { toast } = useToast();
 
-  // Calculate funnel metrics
+  // Calculate existing funnel metrics
   const totalCalls = filteredLeads.reduce((sum, lead) => sum + (lead.tentativas || 0), 0);
   const answeredCalls = filteredLeads.filter(lead => lead.atendido === true).length;
   const meetingsScheduled = filteredLeads.filter(lead => lead.reuniao_marcada === 'Sim').length;
@@ -97,7 +119,17 @@ const Index = () => {
   const answerRate = totalCalls > 0 ? ((answeredCalls / totalCalls) * 100).toFixed(1) : '0';
   const conversionRate = answeredCalls > 0 ? ((meetingsScheduled / answeredCalls) * 100).toFixed(1) : '0';
   const avgAttempts = filteredLeads.length > 0 ? (totalCalls / filteredLeads.length).toFixed(1) : '0';
-  const totalCallTime = totalCalls * 2; // 2 minutes per call
+
+  // Calculate new cost and duration metrics
+  const leadsWithDuration = filteredLeads.filter(lead => lead.duracao != null);
+  const leadsWithCost = filteredLeads.filter(lead => lead.custo_total != null);
+  
+  const totalCost = leadsWithCost.reduce((sum, lead) => sum + (lead.custo_total || 0), 0) / 100; // Convert to dollars
+  const avgCost = leadsWithCost.length > 0 ? (totalCost / leadsWithCost.length).toFixed(2) : '0';
+  
+  const totalDuration = leadsWithDuration.reduce((sum, lead) => sum + (lead.duracao || 0), 0);
+  const totalDurationMinutes = Math.floor(totalDuration / 60);
+  const avgDuration = leadsWithDuration.length > 0 ? (totalDuration / leadsWithDuration.length / 60).toFixed(1) : '0';
 
   // Filter leads based on date
   useEffect(() => {
@@ -127,7 +159,10 @@ const Index = () => {
           dateTime: '—',
           tentativas: Math.floor(Math.random() * 3) + 1,
           atendido: Math.random() > 0.5,
-          reuniao_marcada: '—'
+          reuniao_marcada: '—',
+          duracao: Math.floor(Math.random() * 240) + 30,
+          custo_total: Math.floor(Math.random() * 60) + 10,
+          data_horario_ligacao: new Date().toISOString()
         };
         setLeads(prev => [newLead, ...prev]);
         toast({
@@ -171,7 +206,7 @@ const Index = () => {
         </div>
 
         {/* Metrics Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-6 mb-8">
           <MetricsCard
             title="Ligações Realizadas"
             value={totalCalls}
@@ -197,12 +232,28 @@ const Index = () => {
             description={`${conversionRate}% conversão`}
           />
           <MetricsCard
-            title="Tempo Total em Chamadas"
-            value={`${totalCallTime}min`}
+            title="Custo Total"
+            value={`$${totalCost.toFixed(2)}`}
+            icon={DollarSign}
+            trend="+3%"
+            trendUp={false}
+            description={`$${avgCost} médio por chamada`}
+          />
+          <MetricsCard
+            title="Duração Total"
+            value={`${totalDurationMinutes}min`}
             icon={Clock}
             trend="+5%"
             trendUp={true}
-            description={`${avgAttempts} tentativas/lead`}
+            description={`${avgDuration}min médio por chamada`}
+          />
+          <MetricsCard
+            title="Tentativas/Lead"
+            value={avgAttempts}
+            icon={Target}
+            trend="+2%"
+            trendUp={true}
+            description="média de tentativas"
           />
         </div>
 
@@ -234,6 +285,33 @@ const Index = () => {
               <Target className="w-5 h-5 text-green-600" />
             </div>
             <PerformanceChart leads={filteredLeads} />
+          </div>
+        </div>
+
+        {/* Cost and Duration Charts */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+          {/* Cost Evolution */}
+          <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+            <div className="flex items-center justify-between mb-6">
+              <div>
+                <h2 className="text-lg font-semibold text-gray-900">Evolução de Custos</h2>
+                <p className="text-sm text-gray-500">Custos diários das ligações</p>
+              </div>
+              <DollarSign className="w-5 h-5 text-red-600" />
+            </div>
+            <CostDurationChart leads={filteredLeads} type="cost" />
+          </div>
+
+          {/* Duration Evolution */}
+          <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+            <div className="flex items-center justify-between mb-6">
+              <div>
+                <h2 className="text-lg font-semibold text-gray-900">Evolução de Duração</h2>
+                <p className="text-sm text-gray-500">Duração diária das ligações</p>
+              </div>
+              <Clock className="w-5 h-5 text-purple-600" />
+            </div>
+            <CostDurationChart leads={filteredLeads} type="duration" />
           </div>
         </div>
 
