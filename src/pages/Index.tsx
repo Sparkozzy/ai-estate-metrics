@@ -1,9 +1,10 @@
 
 import React, { useState, useEffect } from 'react';
-import { Search, Calendar, TrendingUp, Users, Clock, Target } from 'lucide-react';
+import { TrendingUp, Phone, PhoneCall, Calendar, Target, Clock, BarChart3 } from 'lucide-react';
 import MetricsCard from '../components/MetricsCard';
 import PerformanceChart from '../components/PerformanceChart';
-import LeadsTable from '../components/LeadsTable';
+import FunnelChart from '../components/FunnelChart';
+import HeatmapChart from '../components/HeatmapChart';
 import DateFilter from '../components/DateFilter';
 import { useToast } from '@/hooks/use-toast';
 
@@ -15,8 +16,8 @@ const mockLeads = [
     email_lead: 'saletemacielrocha@gmail.com',
     email_closer: 'patrick.borges@renatoparanhos.com.br',
     dateTime: '2025-05-28T17:00:00-03:00',
-    tentativas: null,
-    atendido: null,
+    tentativas: 3,
+    atendido: true,
     reuniao_marcada: 'Sim'
   },
   {
@@ -26,7 +27,7 @@ const mockLeads = [
     email_closer: '—',
     dateTime: '—',
     tentativas: 1,
-    atendido: null,
+    atendido: false,
     reuniao_marcada: '—'
   },
   {
@@ -35,8 +36,8 @@ const mockLeads = [
     email_lead: 'fryan3201@gmail.com',
     email_closer: '—',
     dateTime: '—',
-    tentativas: 1,
-    atendido: null,
+    tentativas: 2,
+    atendido: true,
     reuniao_marcada: '—'
   },
   {
@@ -46,7 +47,7 @@ const mockLeads = [
     email_closer: '—',
     dateTime: '—',
     tentativas: 1,
-    atendido: null,
+    atendido: false,
     reuniao_marcada: '—'
   },
   {
@@ -55,8 +56,29 @@ const mockLeads = [
     email_lead: 'fafc.mkt@gmail.com',
     email_closer: '—',
     dateTime: '—',
-    tentativas: 1,
-    atendido: null,
+    tentativas: 2,
+    atendido: true,
+    reuniao_marcada: '—'
+  },
+  // Additional mock data for better analytics
+  {
+    id: 6,
+    created_at: '2025-05-28T14:30:00',
+    email_lead: 'test1@example.com',
+    email_closer: 'closer@company.com',
+    dateTime: '2025-05-30T10:00:00-03:00',
+    tentativas: 2,
+    atendido: true,
+    reuniao_marcada: 'Sim'
+  },
+  {
+    id: 7,
+    created_at: '2025-05-28T16:45:00',
+    email_lead: 'test2@example.com',
+    email_closer: '—',
+    dateTime: '—',
+    tentativas: 3,
+    atendido: false,
     reuniao_marcada: '—'
   }
 ];
@@ -64,26 +86,22 @@ const mockLeads = [
 const Index = () => {
   const [leads, setLeads] = useState(mockLeads);
   const [filteredLeads, setFilteredLeads] = useState(mockLeads);
-  const [searchTerm, setSearchTerm] = useState('');
   const [dateRange, setDateRange] = useState({ start: '', end: '' });
   const { toast } = useToast();
 
-  // Calculate metrics
-  const totalLeads = filteredLeads.length;
-  const leadsWithAttempts = filteredLeads.filter(lead => lead.tentativas > 0).length;
+  // Calculate funnel metrics
+  const totalCalls = filteredLeads.reduce((sum, lead) => sum + (lead.tentativas || 0), 0);
+  const answeredCalls = filteredLeads.filter(lead => lead.atendido === true).length;
   const meetingsScheduled = filteredLeads.filter(lead => lead.reuniao_marcada === 'Sim').length;
-  const conversionRate = totalLeads > 0 ? ((meetingsScheduled / totalLeads) * 100).toFixed(1) : '0';
+  
+  const answerRate = totalCalls > 0 ? ((answeredCalls / totalCalls) * 100).toFixed(1) : '0';
+  const conversionRate = answeredCalls > 0 ? ((meetingsScheduled / answeredCalls) * 100).toFixed(1) : '0';
+  const avgAttempts = filteredLeads.length > 0 ? (totalCalls / filteredLeads.length).toFixed(1) : '0';
+  const totalCallTime = totalCalls * 2; // 2 minutes per call
 
-  // Filter leads based on search and date
+  // Filter leads based on date
   useEffect(() => {
     let filtered = leads;
-
-    if (searchTerm) {
-      filtered = filtered.filter(lead => 
-        lead.email_lead.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        (lead.email_closer && lead.email_closer.toLowerCase().includes(searchTerm.toLowerCase()))
-      );
-    }
 
     if (dateRange.start && dateRange.end) {
       filtered = filtered.filter(lead => {
@@ -95,12 +113,11 @@ const Index = () => {
     }
 
     setFilteredLeads(filtered);
-  }, [searchTerm, dateRange, leads]);
+  }, [dateRange, leads]);
 
   // Simulate real-time updates
   useEffect(() => {
     const interval = setInterval(() => {
-      // Simulate new lead coming in
       if (Math.random() > 0.95) {
         const newLead = {
           id: leads.length + 1,
@@ -108,18 +125,18 @@ const Index = () => {
           email_lead: `lead${Date.now()}@example.com`,
           email_closer: '—',
           dateTime: '—',
-          tentativas: 0,
-          atendido: null,
+          tentativas: Math.floor(Math.random() * 3) + 1,
+          atendido: Math.random() > 0.5,
           reuniao_marcada: '—'
         };
         setLeads(prev => [newLead, ...prev]);
         toast({
-          title: "Novo Lead Recebido",
-          description: `Lead: ${newLead.email_lead}`,
+          title: "Nova Atividade do Agente IA",
+          description: `Tentativa de contato realizada`,
           duration: 3000,
         });
       }
-    }, 10000);
+    }, 15000);
 
     return () => clearInterval(interval);
   }, [leads.length, toast]);
@@ -136,7 +153,7 @@ const Index = () => {
               </div>
               <div>
                 <h1 className="text-xl font-semibold text-gray-900">Dashboard IA Imobiliário</h1>
-                <p className="text-sm text-gray-500">Análise de Performance em Tempo Real</p>
+                <p className="text-sm text-gray-500">Análise de Performance do Funil de Qualificação</p>
               </div>
             </div>
             <div className="flex items-center space-x-2 text-sm text-gray-500">
@@ -148,38 +165,28 @@ const Index = () => {
       </header>
 
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Search and Filters */}
-        <div className="mb-8 flex flex-col sm:flex-row gap-4">
-          <div className="relative flex-1">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
-            <input
-              type="text"
-              placeholder="Buscar por email do lead ou closer..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full pl-10 pr-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-            />
-          </div>
+        {/* Date Filter */}
+        <div className="mb-8 flex justify-end">
           <DateFilter dateRange={dateRange} setDateRange={setDateRange} />
         </div>
 
         {/* Metrics Cards */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
           <MetricsCard
-            title="Total de Leads"
-            value={totalLeads}
-            icon={Users}
+            title="Ligações Realizadas"
+            value={totalCalls}
+            icon={Phone}
             trend="+12%"
             trendUp={true}
-            description="vs. semana anterior"
+            description="total de tentativas"
           />
           <MetricsCard
-            title="Tentativas de Contato"
-            value={leadsWithAttempts}
-            icon={Clock}
+            title="Ligações Atendidas"
+            value={answeredCalls}
+            icon={PhoneCall}
             trend="+8%"
             trendUp={true}
-            description="leads contatados"
+            description={`${answerRate}% taxa de atendimento`}
           />
           <MetricsCard
             title="Reuniões Marcadas"
@@ -187,44 +194,72 @@ const Index = () => {
             icon={Calendar}
             trend="+15%"
             trendUp={true}
-            description="conversões realizadas"
+            description={`${conversionRate}% conversão`}
           />
           <MetricsCard
-            title="Taxa de Conversão"
-            value={`${conversionRate}%`}
-            icon={Target}
-            trend="+3.2%"
+            title="Tempo Total em Chamadas"
+            value={`${totalCallTime}min`}
+            icon={Clock}
+            trend="+5%"
             trendUp={true}
-            description="eficiência geral"
+            description={`${avgAttempts} tentativas/lead`}
           />
         </div>
 
-        {/* Performance Chart */}
-        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 mb-8">
-          <div className="flex items-center justify-between mb-6">
-            <div>
-              <h2 className="text-lg font-semibold text-gray-900">Evolução Semanal</h2>
-              <p className="text-sm text-gray-500">Performance dos últimos 7 dias</p>
+        {/* Charts Grid */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+          {/* Funnel Chart */}
+          <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+            <div className="flex items-center justify-between mb-6">
+              <div>
+                <h2 className="text-lg font-semibold text-gray-900">Funil de Conversão</h2>
+                <p className="text-sm text-gray-500">Performance por etapa</p>
+              </div>
+              <BarChart3 className="w-5 h-5 text-blue-600" />
             </div>
+            <FunnelChart 
+              totalCalls={totalCalls}
+              answeredCalls={answeredCalls}
+              meetingsScheduled={meetingsScheduled}
+            />
           </div>
-          <PerformanceChart leads={filteredLeads} />
+
+          {/* Performance Chart */}
+          <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+            <div className="flex items-center justify-between mb-6">
+              <div>
+                <h2 className="text-lg font-semibold text-gray-900">Evolução Semanal</h2>
+                <p className="text-sm text-gray-500">Performance dos últimos 7 dias</p>
+              </div>
+              <Target className="w-5 h-5 text-green-600" />
+            </div>
+            <PerformanceChart leads={filteredLeads} />
+          </div>
         </div>
 
-        {/* Leads Table */}
-        <div className="bg-white rounded-xl shadow-sm border border-gray-200">
-          <div className="p-6 border-b border-gray-200">
-            <div className="flex items-center justify-between">
+        {/* Heatmaps */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+          {/* Hour Heatmap */}
+          <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+            <div className="flex items-center justify-between mb-6">
               <div>
-                <h2 className="text-lg font-semibold text-gray-900">Leads Recentes</h2>
-                <p className="text-sm text-gray-500">Últimas atividades do agente IA</p>
-              </div>
-              <div className="flex items-center space-x-2 text-sm text-gray-500">
-                <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
-                <span>Atualização automática</span>
+                <h2 className="text-lg font-semibold text-gray-900">Melhores Horários</h2>
+                <p className="text-sm text-gray-500">Taxa de atendimento por horário</p>
               </div>
             </div>
+            <HeatmapChart leads={filteredLeads} type="hour" />
           </div>
-          <LeadsTable leads={filteredLeads} />
+
+          {/* Day of Week Heatmap */}
+          <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+            <div className="flex items-center justify-between mb-6">
+              <div>
+                <h2 className="text-lg font-semibold text-gray-900">Melhores Dias da Semana</h2>
+                <p className="text-sm text-gray-500">Taxa de atendimento por dia</p>
+              </div>
+            </div>
+            <HeatmapChart leads={filteredLeads} type="dayOfWeek" />
+          </div>
         </div>
       </main>
     </div>
