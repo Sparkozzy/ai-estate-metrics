@@ -10,6 +10,7 @@ export const useLeads = () => {
   useEffect(() => {
     const fetchLeads = async () => {
       try {
+        console.log('Buscando leads da tabela Retell_Leads...');
         const { data, error } = await supabase
           .from('Retell_Leads')
           .select('*')
@@ -19,7 +20,9 @@ export const useLeads = () => {
           console.error('Erro ao carregar leads:', error);
           setError(error);
         } else if (data) {
+          console.log('Dados brutos do Supabase:', data);
           const transformedLeads = data.map(transformSupabaseToLead);
+          console.log('Leads transformados:', transformedLeads);
           setLeads(transformedLeads);
         }
       } catch (err) {

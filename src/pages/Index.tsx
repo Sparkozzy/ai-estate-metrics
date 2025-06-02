@@ -1,5 +1,3 @@
-
-
 import React, { useState, useEffect } from 'react';
 import { TrendingUp, Phone, PhoneCall, Calendar, Target, Clock, BarChart3, DollarSign } from 'lucide-react';
 import MetricsCard from '../components/MetricsCard';
@@ -68,7 +66,7 @@ const Index = () => {
         if (!error) {
           setIsConnectedToSupabase(true);
 
-          // Setup real-time subscription
+          // Setup real-time subscription with correct table name
           const subscription = supabase
             .channel('retell_leads_changes')
             .on('postgres_changes', {
