@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { TrendingUp, Phone, PhoneCall, Calendar, Target, Clock, BarChart3, DollarSign } from 'lucide-react';
 import MetricsCard from '../components/MetricsCard';
@@ -9,7 +10,7 @@ import DateFilter from '../components/DateFilter';
 import LeadSearch from '../components/LeadSearch';
 import LeadDetails from '../components/LeadDetails';
 import { useToast } from '@/hooks/use-toast';
-import { supabase, Lead } from '@/lib/supabase';
+import { supabase, Lead, transformSupabaseToLead } from '@/lib/supabase';
 
 // Mock data for development (remove when Supabase is connected)
 const mockLeads: Lead[] = [
@@ -146,20 +147,21 @@ const Index = () => {
   useEffect(() => {
     const setupSupabaseSubscription = async () => {
       try {
-        // Test connection to Supabase
-        const { data, error } = await supabase.from('retell_leads').select('*').limit(1);
+        // Test connection to Supabase with correct table name
+        const { data, error } = await supabase.from('Retell_Leads').select('*').limit(1);
         
         if (!error) {
           setIsConnectedToSupabase(true);
           
           // Fetch initial data
           const { data: initialData } = await supabase
-            .from('retell_leads')
+            .from('Retell_Leads')
             .select('*')
             .order('created_at', { ascending: false });
           
           if (initialData) {
-            setLeads(initialData);
+            const transformedData = initialData.map(transformSupabaseToLead);
+            setLeads(transformedData);
           }
 
           // Setup real-time subscription
@@ -168,20 +170,22 @@ const Index = () => {
             .on('postgres_changes', {
               event: '*',
               schema: 'public',
-              table: 'retell_leads'
+              table: 'Retell_Leads'
             }, (payload) => {
               console.log('Supabase change detected:', payload);
               
               if (payload.eventType === 'INSERT') {
-                setLeads(prev => [payload.new as Lead, ...prev]);
+                const transformedLead = transformSupabaseToLead(payload.new);
+                setLeads(prev => [transformedLead, ...prev]);
                 toast({
                   title: "Nova Atividade do Agente IA",
                   description: "Nova tentativa de contato registrada",
                   duration: 3000,
                 });
               } else if (payload.eventType === 'UPDATE') {
+                const transformedLead = transformSupabaseToLead(payload.new);
                 setLeads(prev => prev.map(lead => 
-                  lead.id === payload.new.id ? payload.new as Lead : lead
+                  lead.id === transformedLead.id ? transformedLead : lead
                 ));
                 toast({
                   title: "Atividade Atualizada",
