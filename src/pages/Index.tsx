@@ -1,4 +1,5 @@
 
+
 import React, { useState, useEffect } from 'react';
 import { TrendingUp, Phone, PhoneCall, Calendar, Target, Clock, BarChart3, DollarSign } from 'lucide-react';
 import MetricsCard from '../components/MetricsCard';
@@ -11,117 +12,31 @@ import LeadSearch from '../components/LeadSearch';
 import LeadDetails from '../components/LeadDetails';
 import { useToast } from '@/hooks/use-toast';
 import { supabase, Lead, transformSupabaseToLead } from '@/lib/supabase';
-
-// Mock data for development (remove when Supabase is connected)
-const mockLeads: Lead[] = [
-  {
-    id: 1,
-    created_at: '2025-05-29T20:21:14',
-    email_lead: 'saletemacielrocha@gmail.com',
-    email_closer: 'patrick.borges@renatoparanhos.com.br',
-    dateTime: '2025-05-28T17:00:00-03:00',
-    tentativas: 3,
-    atendido: true,
-    reuniao_marcada: 'Sim',
-    duracao: 180,
-    custo_total: 45,
-    data_horario_ligacao: '2025-05-28T17:00:00-03:00',
-    sentimento_do_usuario: 'Positivo - Cliente interessado',
-    resumo_ligacao: 'Cliente demonstrou interesse em investimento imobiliário, especialmente em apartamentos na região central. Agendou reunião para próxima semana.'
-  },
-  {
-    id: 2,
-    created_at: '2025-05-29T20:27:13',
-    email_lead: 'fryan3201@gmail.com',
-    email_closer: '—',
-    dateTime: '—',
-    tentativas: 1,
-    atendido: false,
-    reuniao_marcada: '—',
-    duracao: 30,
-    custo_total: 12,
-    data_horario_ligacao: '2025-05-29T14:30:00-03:00'
-  },
-  {
-    id: 3,
-    created_at: '2025-05-29T20:27:31',
-    email_lead: 'fryan3201@gmail.com',
-    email_closer: '—',
-    dateTime: '—',
-    tentativas: 2,
-    atendido: true,
-    reuniao_marcada: '—',
-    duracao: 120,
-    custo_total: 25,
-    data_horario_ligacao: '2025-05-29T15:15:00-03:00',
-    sentimento_do_usuario: 'Neutro',
-    resumo_ligacao: 'Cliente atendeu mas não demonstrou interesse no momento. Solicitou contato em 30 dias.'
-  },
-  {
-    id: 4,
-    created_at: '2025-05-29T20:29:01',
-    email_lead: 'fryan3201@gmail.com',
-    email_closer: '—',
-    dateTime: '—',
-    tentativas: 1,
-    atendido: false,
-    reuniao_marcada: '—',
-    duracao: 45,
-    custo_total: 15,
-    data_horario_ligacao: '2025-05-29T16:00:00-03:00'
-  },
-  {
-    id: 5,
-    created_at: '2025-05-29T20:31:18',
-    email_lead: 'fafc.mkt@gmail.com',
-    email_closer: '—',
-    dateTime: '—',
-    tentativas: 2,
-    atendido: true,
-    reuniao_marcada: '—',
-    duracao: 210,
-    custo_total: 52,
-    data_horario_ligacao: '2025-05-29T16:45:00-03:00',
-    sentimento_do_usuario: 'Negativo - Não tem interesse',
-    resumo_ligacao: 'Cliente informou que não tem interesse em investimentos imobiliários no momento.'
-  },
-  {
-    id: 6,
-    created_at: '2025-05-28T14:30:00',
-    email_lead: 'test1@example.com',
-    email_closer: 'closer@company.com',
-    dateTime: '2025-05-30T10:00:00-03:00',
-    tentativas: 2,
-    atendido: true,
-    reuniao_marcada: 'Sim',
-    duracao: 300,
-    custo_total: 75,
-    data_horario_ligacao: '2025-05-28T14:30:00-03:00',
-    sentimento_do_usuario: 'Muito positivo',
-    resumo_ligacao: 'Excelente conversa! Cliente já possui experiência em investimentos e está pronto para fechar negócio.'
-  },
-  {
-    id: 7,
-    created_at: '2025-05-28T16:45:00',
-    email_lead: 'test2@example.com',
-    email_closer: '—',
-    dateTime: '—',
-    tentativas: 3,
-    atendido: false,
-    reuniao_marcada: '—',
-    duracao: 60,
-    custo_total: 18,
-    data_horario_ligacao: '2025-05-28T16:45:00-03:00'
-  }
-];
+import { useLeads } from '@/hooks/useLeads';
 
 const Index = () => {
-  const [leads, setLeads] = useState<Lead[]>(mockLeads);
-  const [filteredLeads, setFilteredLeads] = useState<Lead[]>(mockLeads);
+  const { leads: allLeads, loading, error } = useLeads();
+  const [filteredLeads, setFilteredLeads] = useState<Lead[]>([]);
   const [dateRange, setDateRange] = useState({ start: '', end: '' });
   const [selectedLead, setSelectedLead] = useState<Lead | null>(null);
   const [isConnectedToSupabase, setIsConnectedToSupabase] = useState(false);
   const { toast } = useToast();
+
+  // Filter leads based on date
+  useEffect(() => {
+    let filtered = allLeads;
+
+    if (dateRange.start && dateRange.end) {
+      filtered = filtered.filter(lead => {
+        const leadDate = new Date(lead.created_at);
+        const startDate = new Date(dateRange.start);
+        const endDate = new Date(dateRange.end);
+        return leadDate >= startDate && leadDate <= endDate;
+      });
+    }
+
+    setFilteredLeads(filtered);
+  }, [dateRange, allLeads]);
 
   // Calculate existing funnel metrics
   const totalCalls = filteredLeads.reduce((sum, lead) => sum + (lead.tentativas || 0), 0);
@@ -152,17 +67,6 @@ const Index = () => {
         
         if (!error) {
           setIsConnectedToSupabase(true);
-          
-          // Fetch initial data
-          const { data: initialData } = await supabase
-            .from('Retell_Leads')
-            .select('*')
-            .order('created_at', { ascending: false });
-          
-          if (initialData) {
-            const transformedData = initialData.map(transformSupabaseToLead);
-            setLeads(transformedData);
-          }
 
           // Setup real-time subscription
           const subscription = supabase
@@ -176,17 +80,12 @@ const Index = () => {
               
               if (payload.eventType === 'INSERT') {
                 const transformedLead = transformSupabaseToLead(payload.new);
-                setLeads(prev => [transformedLead, ...prev]);
                 toast({
                   title: "Nova Atividade do Agente IA",
                   description: "Nova tentativa de contato registrada",
                   duration: 3000,
                 });
               } else if (payload.eventType === 'UPDATE') {
-                const transformedLead = transformSupabaseToLead(payload.new);
-                setLeads(prev => prev.map(lead => 
-                  lead.id === transformedLead.id ? transformedLead : lead
-                ));
                 toast({
                   title: "Atividade Atualizada",
                   description: "Dados do lead foram atualizados",
@@ -200,11 +99,11 @@ const Index = () => {
             subscription.unsubscribe();
           };
         } else {
-          console.log('Supabase not connected, using mock data');
+          console.log('Supabase not connected, using hook data');
           setIsConnectedToSupabase(false);
         }
       } catch (error) {
-        console.log('Supabase connection failed, using mock data:', error);
+        console.log('Supabase connection failed, using hook data:', error);
         setIsConnectedToSupabase(false);
       }
     };
@@ -212,52 +111,39 @@ const Index = () => {
     setupSupabaseSubscription();
   }, [toast]);
 
-  // Filter leads based on date
-  useEffect(() => {
-    let filtered = leads;
+  // Show loading state
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="w-16 h-16 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+          <h2 className="text-xl font-semibold text-gray-900 mb-2">Carregando dados...</h2>
+          <p className="text-gray-500">Conectando ao Supabase e carregando leads</p>
+        </div>
+      </div>
+    );
+  }
 
-    if (dateRange.start && dateRange.end) {
-      filtered = filtered.filter(lead => {
-        const leadDate = new Date(lead.created_at);
-        const startDate = new Date(dateRange.start);
-        const endDate = new Date(dateRange.end);
-        return leadDate >= startDate && leadDate <= endDate;
-      });
-    }
-
-    setFilteredLeads(filtered);
-  }, [dateRange, leads]);
-
-  // Mock real-time updates for development
-  useEffect(() => {
-    if (isConnectedToSupabase) return; // Don't use mock updates if connected to Supabase
-
-    const interval = setInterval(() => {
-      if (Math.random() > 0.95) {
-        const newLead: Lead = {
-          id: leads.length + 1,
-          created_at: new Date().toISOString(),
-          email_lead: `lead${Date.now()}@example.com`,
-          email_closer: '—',
-          dateTime: '—',
-          tentativas: Math.floor(Math.random() * 3) + 1,
-          atendido: Math.random() > 0.5,
-          reuniao_marcada: '—',
-          duracao: Math.floor(Math.random() * 240) + 30,
-          custo_total: Math.floor(Math.random() * 60) + 10,
-          data_horario_ligacao: new Date().toISOString()
-        };
-        setLeads(prev => [newLead, ...prev]);
-        toast({
-          title: "Nova Atividade do Agente IA",
-          description: `Tentativa de contato realizada`,
-          duration: 3000,
-        });
-      }
-    }, 15000);
-
-    return () => clearInterval(interval);
-  }, [leads.length, toast, isConnectedToSupabase]);
+  // Show error state
+  if (error) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
+            <Phone className="w-8 h-8 text-red-600" />
+          </div>
+          <h2 className="text-xl font-semibold text-gray-900 mb-2">Erro ao carregar dados</h2>
+          <p className="text-gray-500 mb-4">Não foi possível conectar ao Supabase</p>
+          <button 
+            onClick={() => window.location.reload()} 
+            className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+          >
+            Tentar novamente
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -277,7 +163,10 @@ const Index = () => {
             <div className="flex items-center space-x-4">
               <div className="flex items-center space-x-2 text-sm text-gray-500">
                 <div className={`w-2 h-2 rounded-full ${isConnectedToSupabase ? 'bg-green-500 animate-pulse' : 'bg-yellow-500'}`}></div>
-                <span>{isConnectedToSupabase ? 'Conectado ao Supabase' : 'Modo de Desenvolvimento'}</span>
+                <span>{isConnectedToSupabase ? 'Conectado ao Supabase' : 'Usando dados do Hook'}</span>
+              </div>
+              <div className="text-sm text-gray-500">
+                {filteredLeads.length} leads carregados
               </div>
             </div>
           </div>
