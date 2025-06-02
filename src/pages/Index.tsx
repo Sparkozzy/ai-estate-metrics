@@ -8,6 +8,7 @@ import CostDurationChart from '../components/CostDurationChart';
 import DateFilter from '../components/DateFilter';
 import LeadSearch from '../components/LeadSearch';
 import LeadDetails from '../components/LeadDetails';
+import DiagnosticComponent from '../components/DiagnosticComponent';
 import { useToast } from '@/hooks/use-toast';
 import { supabase, Lead, transformSupabaseToLead } from '@/lib/supabase';
 import { useLeads } from '@/hooks/useLeads';
@@ -18,6 +19,7 @@ const Index = () => {
   const [dateRange, setDateRange] = useState({ start: '', end: '' });
   const [selectedLead, setSelectedLead] = useState<Lead | null>(null);
   const [isConnectedToSupabase, setIsConnectedToSupabase] = useState(false);
+  const [showDiagnostic, setShowDiagnostic] = useState(false);
   const { toast } = useToast();
 
   // Filter leads based on date
@@ -109,6 +111,36 @@ const Index = () => {
     setupSupabaseSubscription();
   }, [toast]);
 
+  // Show diagnostic view if enabled
+  if (showDiagnostic) {
+    return (
+      <div className="min-h-screen bg-gray-50">
+        <header className="bg-white border-b border-gray-200">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="flex justify-between items-center h-16">
+              <div className="flex items-center space-x-4">
+                <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
+                  <TrendingUp className="w-5 h-5 text-white" />
+                </div>
+                <div>
+                  <h1 className="text-xl font-semibold text-gray-900">Diagnóstico do Sistema</h1>
+                  <p className="text-sm text-gray-500">Verificação de dados do Supabase</p>
+                </div>
+              </div>
+              <button 
+                onClick={() => setShowDiagnostic(false)}
+                className="px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700"
+              >
+                Voltar ao Dashboard
+              </button>
+            </div>
+          </div>
+        </header>
+        <DiagnosticComponent />
+      </div>
+    );
+  }
+
   // Show loading state
   if (loading) {
     return (
@@ -132,12 +164,20 @@ const Index = () => {
           </div>
           <h2 className="text-xl font-semibold text-gray-900 mb-2">Erro ao carregar dados</h2>
           <p className="text-gray-500 mb-4">Não foi possível conectar ao Supabase</p>
-          <button 
-            onClick={() => window.location.reload()} 
-            className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
-          >
-            Tentar novamente
-          </button>
+          <div className="space-x-4">
+            <button 
+              onClick={() => window.location.reload()} 
+              className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+            >
+              Tentar novamente
+            </button>
+            <button 
+              onClick={() => setShowDiagnostic(true)} 
+              className="px-4 py-2 bg-yellow-600 text-white rounded-lg hover:bg-yellow-700"
+            >
+              Abrir Diagnóstico
+            </button>
+          </div>
         </div>
       </div>
     );
@@ -166,6 +206,12 @@ const Index = () => {
               <div className="text-sm text-gray-500">
                 {filteredLeads.length} leads carregados
               </div>
+              <button 
+                onClick={() => setShowDiagnostic(true)}
+                className="px-3 py-1 bg-gray-600 text-white text-xs rounded hover:bg-gray-700"
+              >
+                🔍 Diagnóstico
+              </button>
             </div>
           </div>
         </div>
