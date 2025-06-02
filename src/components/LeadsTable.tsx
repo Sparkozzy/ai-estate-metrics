@@ -1,23 +1,14 @@
 
 import React from 'react';
 import { CheckCircle, XCircle, Clock, Mail } from 'lucide-react';
-
-interface Lead {
-  id: number;
-  created_at: string;
-  email_lead: string;
-  email_closer: string;
-  dateTime: string;
-  tentativas: number | null;
-  atendido: boolean | null;
-  reuniao_marcada: string;
-}
+import { Lead } from '@/lib/supabase';
 
 interface LeadsTableProps {
   leads: Lead[];
+  onLeadClick?: (lead: Lead) => void;
 }
 
-const LeadsTable: React.FC<LeadsTableProps> = ({ leads }) => {
+const LeadsTable: React.FC<LeadsTableProps> = ({ leads, onLeadClick }) => {
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
     return date.toLocaleDateString('pt-BR', {
@@ -54,6 +45,10 @@ const LeadsTable: React.FC<LeadsTableProps> = ({ leads }) => {
     }
   };
 
+  const formatValue = (value: string | undefined | null) => {
+    return value && value.trim() !== '' ? value : "—";
+  };
+
   return (
     <div className="overflow-x-auto">
       <table className="w-full">
@@ -78,7 +73,11 @@ const LeadsTable: React.FC<LeadsTableProps> = ({ leads }) => {
         </thead>
         <tbody className="divide-y divide-gray-200">
           {leads.map((lead) => (
-            <tr key={lead.id} className="hover:bg-gray-50 transition-colors duration-150">
+            <tr 
+              key={lead.id} 
+              className="hover:bg-gray-50 transition-colors duration-150 cursor-pointer"
+              onClick={() => onLeadClick?.(lead)}
+            >
               <td className="px-6 py-4 whitespace-nowrap">
                 <div className="flex items-center">
                   <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center mr-3">
@@ -86,10 +85,10 @@ const LeadsTable: React.FC<LeadsTableProps> = ({ leads }) => {
                   </div>
                   <div>
                     <div className="text-sm font-medium text-gray-900">
-                      {lead.email_lead}
+                      {formatValue(lead.nome) !== "—" ? lead.nome : lead.email_lead}
                     </div>
                     <div className="text-sm text-gray-500">
-                      ID: {lead.id}
+                      {formatValue(lead.email_lead)}
                     </div>
                   </div>
                 </div>

@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { TrendingUp, Phone, PhoneCall, Calendar, Target, Clock, BarChart3, DollarSign } from 'lucide-react';
 import MetricsCard from '../components/MetricsCard';
 import PerformanceChart from '../components/PerformanceChart';
@@ -7,134 +7,25 @@ import FunnelChart from '../components/FunnelChart';
 import HeatmapChart from '../components/HeatmapChart';
 import CostDurationChart from '../components/CostDurationChart';
 import DateFilter from '../components/DateFilter';
+import SearchFilter from '../components/SearchFilter';
+import LeadsTable from '../components/LeadsTable';
+import LeadDetailPanel from '../components/LeadDetailPanel';
+import { useLeads } from '../hooks/useLeads';
+import { Lead } from '@/lib/supabase';
 import { useToast } from '@/hooks/use-toast';
 
-// Simulated data structure matching updated Supabase schema
-const mockLeads = [
-  {
-    id: 1,
-    created_at: '2025-05-29T20:21:14',
-    email_lead: 'saletemacielrocha@gmail.com',
-    email_closer: 'patrick.borges@renatoparanhos.com.br',
-    dateTime: '2025-05-28T17:00:00-03:00',
-    tentativas: 3,
-    atendido: true,
-    reuniao_marcada: 'Sim',
-    duracao: 180,
-    custo_total: 45,
-    data_horario_ligacao: '2025-05-28T17:00:00-03:00'
-  },
-  {
-    id: 2,
-    created_at: '2025-05-29T20:27:13',
-    email_lead: 'fryan3201@gmail.com',
-    email_closer: '—',
-    dateTime: '—',
-    tentativas: 1,
-    atendido: false,
-    reuniao_marcada: '—',
-    duracao: 30,
-    custo_total: 12,
-    data_horario_ligacao: '2025-05-29T14:30:00-03:00'
-  },
-  {
-    id: 3,
-    created_at: '2025-05-29T20:27:31',
-    email_lead: 'fryan3201@gmail.com',
-    email_closer: '—',
-    dateTime: '—',
-    tentativas: 2,
-    atendido: true,
-    reuniao_marcada: '—',
-    duracao: 120,
-    custo_total: 25,
-    data_horario_ligacao: '2025-05-29T15:15:00-03:00'
-  },
-  {
-    id: 4,
-    created_at: '2025-05-29T20:29:01',
-    email_lead: 'fryan3201@gmail.com',
-    email_closer: '—',
-    dateTime: '—',
-    tentativas: 1,
-    atendido: false,
-    reuniao_marcada: '—',
-    duracao: 45,
-    custo_total: 15,
-    data_horario_ligacao: '2025-05-29T16:00:00-03:00'
-  },
-  {
-    id: 5,
-    created_at: '2025-05-29T20:31:18',
-    email_lead: 'fafc.mkt@gmail.com',
-    email_closer: '—',
-    dateTime: '—',
-    tentativas: 2,
-    atendido: true,
-    reuniao_marcada: '—',
-    duracao: 210,
-    custo_total: 52,
-    data_horario_ligacao: '2025-05-29T16:45:00-03:00'
-  },
-  // Additional mock data for better analytics
-  {
-    id: 6,
-    created_at: '2025-05-28T14:30:00',
-    email_lead: 'test1@example.com',
-    email_closer: 'closer@company.com',
-    dateTime: '2025-05-30T10:00:00-03:00',
-    tentativas: 2,
-    atendido: true,
-    reuniao_marcada: 'Sim',
-    duracao: 300,
-    custo_total: 75,
-    data_horario_ligacao: '2025-05-28T14:30:00-03:00'
-  },
-  {
-    id: 7,
-    created_at: '2025-05-28T16:45:00',
-    email_lead: 'test2@example.com',
-    email_closer: '—',
-    dateTime: '—',
-    tentativas: 3,
-    atendido: false,
-    reuniao_marcada: '—',
-    duracao: 60,
-    custo_total: 18,
-    data_horario_ligacao: '2025-05-28T16:45:00-03:00'
-  }
-];
-
 const Index = () => {
-  const [leads, setLeads] = useState(mockLeads);
-  const [filteredLeads, setFilteredLeads] = useState(mockLeads);
+  const { leads, loading, error } = useLeads();
   const [dateRange, setDateRange] = useState({ start: '', end: '' });
+  const [searchTerm, setSearchTerm] = useState('');
+  const [selectedLead, setSelectedLead] = useState<Lead | null>(null);
   const { toast } = useToast();
 
-  // Calculate existing funnel metrics
-  const totalCalls = filteredLeads.reduce((sum, lead) => sum + (lead.tentativas || 0), 0);
-  const answeredCalls = filteredLeads.filter(lead => lead.atendido === true).length;
-  const meetingsScheduled = filteredLeads.filter(lead => lead.reuniao_marcada === 'Sim').length;
-  
-  const answerRate = totalCalls > 0 ? ((answeredCalls / totalCalls) * 100).toFixed(1) : '0';
-  const conversionRate = answeredCalls > 0 ? ((meetingsScheduled / answeredCalls) * 100).toFixed(1) : '0';
-  const avgAttempts = filteredLeads.length > 0 ? (totalCalls / filteredLeads.length).toFixed(1) : '0';
-
-  // Calculate new cost and duration metrics
-  const leadsWithDuration = filteredLeads.filter(lead => lead.duracao != null);
-  const leadsWithCost = filteredLeads.filter(lead => lead.custo_total != null);
-  
-  const totalCost = leadsWithCost.reduce((sum, lead) => sum + (lead.custo_total || 0), 0) / 100; // Convert to dollars
-  const avgCost = leadsWithCost.length > 0 ? (totalCost / leadsWithCost.length).toFixed(2) : '0';
-  
-  const totalDuration = leadsWithDuration.reduce((sum, lead) => sum + (lead.duracao || 0), 0);
-  const totalDurationMinutes = Math.floor(totalDuration / 60);
-  const avgDuration = leadsWithDuration.length > 0 ? (totalDuration / leadsWithDuration.length / 60).toFixed(1) : '0';
-
-  // Filter leads based on date
-  useEffect(() => {
+  // Filter leads based on date and search
+  const filteredLeads = useMemo(() => {
     let filtered = leads;
 
+    // Date filter
     if (dateRange.start && dateRange.end) {
       filtered = filtered.filter(lead => {
         const leadDate = new Date(lead.created_at);
@@ -144,37 +35,68 @@ const Index = () => {
       });
     }
 
-    setFilteredLeads(filtered);
-  }, [dateRange, leads]);
+    // Search filter
+    if (searchTerm.trim()) {
+      const searchLower = searchTerm.toLowerCase();
+      filtered = filtered.filter(lead => 
+        (lead.nome && lead.nome.toLowerCase().includes(searchLower)) ||
+        (lead.email_lead && lead.email_lead.toLowerCase().includes(searchLower)) ||
+        (lead.numero && lead.numero.toLowerCase().includes(searchLower))
+      );
+    }
 
-  // Simulate real-time updates
-  useEffect(() => {
-    const interval = setInterval(() => {
-      if (Math.random() > 0.95) {
-        const newLead = {
-          id: leads.length + 1,
-          created_at: new Date().toISOString(),
-          email_lead: `lead${Date.now()}@example.com`,
-          email_closer: '—',
-          dateTime: '—',
-          tentativas: Math.floor(Math.random() * 3) + 1,
-          atendido: Math.random() > 0.5,
-          reuniao_marcada: '—',
-          duracao: Math.floor(Math.random() * 240) + 30,
-          custo_total: Math.floor(Math.random() * 60) + 10,
-          data_horario_ligacao: new Date().toISOString()
-        };
-        setLeads(prev => [newLead, ...prev]);
-        toast({
-          title: "Nova Atividade do Agente IA",
-          description: `Tentativa de contato realizada`,
-          duration: 3000,
-        });
-      }
-    }, 15000);
+    return filtered;
+  }, [leads, dateRange, searchTerm]);
 
-    return () => clearInterval(interval);
-  }, [leads.length, toast]);
+  // Safe calculations
+  const totalCalls = filteredLeads.reduce((sum, lead) => sum + (lead.tentativas || 0), 0);
+  const answeredCalls = filteredLeads.filter(lead => lead.atendido === true).length;
+  const meetingsScheduled = filteredLeads.filter(lead => lead.reuniao_marcada === 'Sim').length;
+  
+  const answerRate = totalCalls > 0 ? ((answeredCalls / totalCalls) * 100).toFixed(1) : '0';
+  const conversionRate = answeredCalls > 0 ? ((meetingsScheduled / answeredCalls) * 100).toFixed(1) : '0';
+  const avgAttempts = filteredLeads.length > 0 ? (totalCalls / filteredLeads.length).toFixed(1) : '0';
+
+  // Safe cost and duration calculations
+  const leadsWithDuration = filteredLeads.filter(lead => lead.duracao && lead.duracao > 0);
+  const leadsWithCost = filteredLeads.filter(lead => lead.custo_total && lead.custo_total > 0);
+  
+  const totalCost = leadsWithCost.reduce((sum, lead) => sum + (lead.custo_total || 0), 0);
+  const avgCost = leadsWithCost.length > 0 ? (totalCost / leadsWithCost.length / 100).toFixed(2) : '0';
+  
+  const totalDuration = leadsWithDuration.reduce((sum, lead) => sum + (lead.duracao || 0), 0);
+  const totalDurationMinutes = Math.round(totalDuration / 60);
+  const avgDuration = leadsWithDuration.length > 0 ? (totalDuration / leadsWithDuration.length / 60).toFixed(1) : '0';
+
+  // Show loading state
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center mx-auto mb-4">
+            <TrendingUp className="w-5 h-5 text-white animate-pulse" />
+          </div>
+          <h2 className="text-xl font-semibold text-gray-900 mb-2">Carregando dados...</h2>
+          <p className="text-gray-500">Aguarde enquanto carregamos as informações dos leads</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Show error state
+  if (error) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="w-8 h-8 bg-red-600 rounded-lg flex items-center justify-center mx-auto mb-4">
+            <TrendingUp className="w-5 h-5 text-white" />
+          </div>
+          <h2 className="text-xl font-semibold text-gray-900 mb-2">Erro ao carregar dados</h2>
+          <p className="text-red-600">{error}</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -200,9 +122,15 @@ const Index = () => {
       </header>
 
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Date Filter */}
-        <div className="mb-8 flex justify-end">
+        {/* Search and Date Filter */}
+        <div className="mb-8 flex flex-col sm:flex-row gap-4 justify-between items-start sm:items-center">
+          <SearchFilter searchTerm={searchTerm} setSearchTerm={setSearchTerm} />
           <DateFilter dateRange={dateRange} setDateRange={setDateRange} />
+        </div>
+
+        {/* Summary Stats */}
+        <div className="mb-6 text-sm text-gray-600">
+          Exibindo {filteredLeads.length} de {leads.length} leads
         </div>
 
         {/* Metrics Cards */}
@@ -233,7 +161,7 @@ const Index = () => {
           />
           <MetricsCard
             title="Custo Total"
-            value={`$${totalCost.toFixed(2)}`}
+            value={`$${(totalCost / 100).toFixed(2)}`}
             icon={DollarSign}
             trend="+3%"
             trendUp={false}
@@ -316,7 +244,7 @@ const Index = () => {
         </div>
 
         {/* Heatmaps */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
           {/* Hour Heatmap */}
           <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
             <div className="flex items-center justify-between mb-6">
@@ -339,7 +267,22 @@ const Index = () => {
             <HeatmapChart leads={filteredLeads} type="dayOfWeek" />
           </div>
         </div>
+
+        {/* Leads Table */}
+        <div className="bg-white rounded-xl shadow-sm border border-gray-200">
+          <div className="p-6 border-b border-gray-200">
+            <h2 className="text-lg font-semibold text-gray-900">Lista de Leads</h2>
+            <p className="text-sm text-gray-500">Clique em um lead para ver os detalhes</p>
+          </div>
+          <LeadsTable leads={filteredLeads} onLeadClick={setSelectedLead} />
+        </div>
       </main>
+
+      {/* Lead Detail Panel */}
+      <LeadDetailPanel 
+        lead={selectedLead} 
+        onClose={() => setSelectedLead(null)} 
+      />
     </div>
   );
 };
