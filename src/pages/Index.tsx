@@ -167,8 +167,8 @@ const Index = () => {
 
         if (data && data.length > 0) {
           console.log('Loaded leads from Supabase:', data);
-          setLeads(data);
-          setFilteredLeads(data);
+          setLeads(data as Lead[]);
+          setFilteredLeads(data as Lead[]);
         }
       } catch (err) {
         console.error('Error connecting to Supabase:', err);
@@ -218,7 +218,7 @@ const Index = () => {
                 .order('created_at', { ascending: false });
 
               if (!error && data) {
-                setLeads(data);
+                setLeads(data as Lead[]);
                 toast({
                   title: "Dados atualizados",
                   description: "Nova atividade detectada no banco de dados.",
