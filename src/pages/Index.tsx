@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { TrendingUp, Phone, PhoneCall, Calendar, Target, Clock, BarChart3, DollarSign } from 'lucide-react';
 import MetricsCard from '../components/MetricsCard';
@@ -7,7 +6,10 @@ import FunnelChart from '../components/FunnelChart';
 import HeatmapChart from '../components/HeatmapChart';
 import CostDurationChart from '../components/CostDurationChart';
 import DateFilter from '../components/DateFilter';
+import SearchLeads from '../components/SearchLeads';
+import LeadDetailPanel from '../components/LeadDetailPanel';
 import { useToast } from '@/hooks/use-toast';
+import { supabase } from '@/integrations/supabase/client';
 
 // Simulated data structure matching updated Supabase schema
 const mockLeads = [
@@ -109,7 +111,66 @@ const Index = () => {
   const [leads, setLeads] = useState(mockLeads);
   const [filteredLeads, setFilteredLeads] = useState(mockLeads);
   const [dateRange, setDateRange] = useState({ start: '', end: '' });
+  const [selectedLead, setSelectedLead] = useState(null);
   const { toast } = useToast();
+
+  // Load data from Supabase on component mount
+  useEffect(() => {
+    const loadLeadsFromSupabase = async () => {
+      try {
+        const { data, error } = await supabase
+          .from('Retell_Leads')
+          .select('*')
+          .order('created_at', { ascending: false });
+
+        if (error) {
+          console.error('Error loading leads:', error);
+          toast({
+            title: "Erro ao carregar dados",
+            description: "Usando dados simulados. Verifique a conexão com o Supabase.",
+            variant: "destructive",
+          });
+          return;
+        }
+
+        if (data && data.length > 0) {
+          console.log('Loaded leads from Supabase:', data);
+          setLeads(data);
+          setFilteredLeads(data);
+        }
+      } catch (err) {
+        console.error('Error connecting to Supabase:', err);
+        toast({
+          title: "Erro de conexão",
+          description: "Usando dados simulados. Verifique a configuração do Supabase.",
+          variant: "destructive",
+        });
+      }
+    };
+
+    loadLeadsFromSupabase();
+
+    // Set up real-time subscription
+    const channel = supabase
+      .channel('retell-leads-changes')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'Retell_Leads'
+        },
+        (payload) => {
+          console.log('Real-time update:', payload);
+          loadLeadsFromSupabase(); // Reload data on changes
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [toast]);
 
   // Calculate existing funnel metrics
   const totalCalls = filteredLeads.reduce((sum, lead) => sum + (lead.tentativas || 0), 0);
@@ -191,15 +252,22 @@ const Index = () => {
                 <p className="text-sm text-gray-500">Análise de Performance do Funil de Qualificação</p>
               </div>
             </div>
-            <div className="flex items-center space-x-2 text-sm text-gray-500">
-              <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
-              <span>Conectado</span>
+            <div className="flex items-center space-x-4">
+              <SearchLeads 
+                leads={leads}
+                onSelectLead={setSelectedLead}
+                selectedLead={selectedLead}
+              />
+              <div className="flex items-center space-x-2 text-sm text-gray-500">
+                <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+                <span>Conectado</span>
+              </div>
             </div>
           </div>
         </div>
       </header>
 
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <main className={`max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 transition-all duration-300 ${selectedLead ? 'mr-96' : ''}`}>
         {/* Date Filter */}
         <div className="mb-8 flex justify-end">
           <DateFilter dateRange={dateRange} setDateRange={setDateRange} />
@@ -340,6 +408,12 @@ const Index = () => {
           </div>
         </div>
       </main>
+
+      {/* Lead Detail Panel */}
+      <LeadDetailPanel 
+        lead={selectedLead} 
+        onClose={() => setSelectedLead(null)} 
+      />
     </div>
   );
 };
