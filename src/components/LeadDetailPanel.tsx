@@ -8,14 +8,16 @@ interface Lead {
   email_lead: string;
   email_closer: string;
   dateTime: string;
-  tentativas: number | null;
-  atendido: boolean | null;
-  reuniao_marcada: string;
-  duracao?: number;
-  custo_total?: number;
-  data_horario_ligacao?: string;
+  tentativas: string | null;
+  'atendido?': string | null;
+  'Reuniao_marcada?': string;
+  Duracao?: number;
+  Custo_total?: number;
+  Data_horario_ligação?: string;
   Resumo_ligação?: string;
   Sentimento_do_usuário?: string;
+  Nome?: string;
+  Numero?: string;
 }
 
 interface LeadDetailPanelProps {
@@ -97,7 +99,7 @@ const LeadDetailPanel: React.FC<LeadDetailPanelProps> = ({ lead, onClose }) => {
               </div>
               <div className="flex items-center text-sm">
                 <Phone className="w-4 h-4 text-gray-400 mr-2" />
-                <span className="text-gray-900">{(lead as any).Numero || 'Não disponível'}</span>
+                <span className="text-gray-900">{lead.Numero || 'Não disponível'}</span>
               </div>
             </div>
           </div>
@@ -121,7 +123,7 @@ const LeadDetailPanel: React.FC<LeadDetailPanelProps> = ({ lead, onClose }) => {
                   Duração
                 </div>
                 <div className="text-lg font-semibold text-blue-600">
-                  {formatDuration(lead.duracao)}
+                  {formatDuration(lead.Duracao)}
                 </div>
               </div>
             </div>
@@ -133,7 +135,7 @@ const LeadDetailPanel: React.FC<LeadDetailPanelProps> = ({ lead, onClose }) => {
             <div className="flex items-center">
               <DollarSign className="w-4 h-4 text-green-600 mr-2" />
               <span className="text-lg font-semibold text-green-600">
-                {formatCost(lead.custo_total)}
+                {formatCost(lead.Custo_total)}
               </span>
             </div>
           </div>
@@ -141,7 +143,7 @@ const LeadDetailPanel: React.FC<LeadDetailPanelProps> = ({ lead, onClose }) => {
           {/* Meeting Status */}
           <div className="bg-purple-50 p-4 rounded-lg">
             <h3 className="text-sm font-medium text-gray-900 mb-3">Status da Reunião</h3>
-            {getMeetingStatus(lead.reuniao_marcada)}
+            {getMeetingStatus(lead['Reuniao_marcada?'])}
           </div>
 
           {/* Last Call Date */}
@@ -150,7 +152,7 @@ const LeadDetailPanel: React.FC<LeadDetailPanelProps> = ({ lead, onClose }) => {
             <div className="flex items-center text-sm">
               <Calendar className="w-4 h-4 text-orange-600 mr-2" />
               <span className="text-gray-900">
-                {formatDate(lead.data_horario_ligacao || lead.created_at)}
+                {formatDate(lead.Data_horario_ligação || lead.created_at)}
               </span>
             </div>
           </div>

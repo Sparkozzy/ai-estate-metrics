@@ -9,14 +9,16 @@ interface Lead {
   email_lead: string;
   email_closer: string;
   dateTime: string;
-  tentativas: number | null;
-  atendido: boolean | null;
-  reuniao_marcada: string;
-  duracao?: number;
-  custo_total?: number;
-  data_horario_ligacao?: string;
+  tentativas: string | null;
+  'atendido?': string | null;
+  'Reuniao_marcada?': string;
+  Duracao?: number;
+  Custo_total?: number;
+  Data_horario_ligação?: string;
   Resumo_ligação?: string;
   Sentimento_do_usuário?: string;
+  Nome?: string;
+  Numero?: string;
 }
 
 interface SearchLeadsProps {
@@ -34,8 +36,8 @@ const SearchLeads: React.FC<SearchLeadsProps> = ({ leads, onSelectLead, selected
     return (
       lead.email_lead?.toLowerCase().includes(term) ||
       lead.email_closer?.toLowerCase().includes(term) ||
-      (lead as any).Numero?.toLowerCase().includes(term) ||
-      (lead as any).Nome?.toLowerCase().includes(term)
+      lead.Numero?.toLowerCase().includes(term) ||
+      lead.Nome?.toLowerCase().includes(term)
     );
   });
 

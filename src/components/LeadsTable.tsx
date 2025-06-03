@@ -8,9 +8,11 @@ interface Lead {
   email_lead: string;
   email_closer: string;
   dateTime: string;
-  tentativas: number | null;
-  atendido: boolean | null;
-  reuniao_marcada: string;
+  tentativas: string | null;
+  'atendido?': string | null;
+  'Reuniao_marcada?': string;
+  Nome?: string;
+  Numero?: string;
 }
 
 interface LeadsTableProps {
@@ -115,7 +117,7 @@ const LeadsTable: React.FC<LeadsTableProps> = ({ leads }) => {
                 )}
               </td>
               <td className="px-6 py-4 whitespace-nowrap">
-                {getStatusBadge(lead.reuniao_marcada)}
+                {getStatusBadge(lead['Reuniao_marcada?'])}
               </td>
             </tr>
           ))}
