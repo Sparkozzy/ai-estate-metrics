@@ -12,9 +12,10 @@ import LeadDetailPanel from '../components/LeadDetailPanel';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
+import { Lead } from '../types/lead';
 
-// Updated data structure to match Supabase schema
-const mockLeads = [
+// Updated mock data to match the Lead interface exactly
+const mockLeads: Lead[] = [
   {
     id: 1,
     created_at: '2025-05-29T20:21:14',
@@ -100,7 +101,6 @@ const mockLeads = [
     Resumo_ligação: 'Interessado mas precisa avaliar',
     Sentimento_do_usuário: 'Positivo'
   },
-  // Additional mock data for better analytics
   {
     id: 6,
     created_at: '2025-05-28T14:30:00',
@@ -138,12 +138,12 @@ const mockLeads = [
 ];
 
 const Index = () => {
-  const [leads, setLeads] = useState(mockLeads);
-  const [filteredLeads, setFilteredLeads] = useState(mockLeads);
+  const [leads, setLeads] = useState<Lead[]>(mockLeads);
+  const [filteredLeads, setFilteredLeads] = useState<Lead[]>(mockLeads);
   const [dateRange, setDateRange] = useState({ start: '', end: '' });
-  const [selectedLead, setSelectedLead] = useState(null);
+  const [selectedLead, setSelectedLead] = useState<Lead | null>(null);
   const [isRealTimeEnabled, setIsRealTimeEnabled] = useState(false);
-  const [realtimeChannel, setRealtimeChannel] = useState(null);
+  const [realtimeChannel, setRealtimeChannel] = useState<any>(null);
   const { toast } = useToast();
 
   // Load data from Supabase on component mount
@@ -260,7 +260,7 @@ const Index = () => {
   }, [realtimeChannel]);
 
   // Calculate existing funnel metrics with updated field names
-  const totalCalls = filteredLeads.reduce((sum, lead) => sum + (parseInt(lead.tentativas) || 0), 0);
+  const totalCalls = filteredLeads.reduce((sum, lead) => sum + (parseInt(lead.tentativas || '0') || 0), 0);
   const answeredCalls = filteredLeads.filter(lead => lead['atendido?'] === 'Sim').length;
   const meetingsScheduled = filteredLeads.filter(lead => lead['Reuniao_marcada?'] === 'Sim').length;
   
@@ -299,13 +299,13 @@ const Index = () => {
   useEffect(() => {
     const interval = setInterval(() => {
       if (Math.random() > 0.95) {
-        const newLead = {
+        const newLead: Lead = {
           id: leads.length + 1,
           created_at: new Date().toISOString(),
           email_lead: `lead${Date.now()}@example.com`,
           email_closer: '—',
           dateTime: '—',
-          tentativas: Math.floor(Math.random() * 3) + 1,
+          tentativas: String(Math.floor(Math.random() * 3) + 1),
           'atendido?': Math.random() > 0.5 ? 'Sim' : 'Não',
           'Reuniao_marcada?': '—',
           Duracao: Math.floor(Math.random() * 240) + 30,

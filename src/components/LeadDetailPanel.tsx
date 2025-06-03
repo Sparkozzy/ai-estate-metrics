@@ -1,24 +1,7 @@
 
 import React from 'react';
 import { X, Mail, Phone, Clock, DollarSign, MessageSquare, Heart, Calendar, CheckCircle, XCircle } from 'lucide-react';
-
-interface Lead {
-  id: number;
-  created_at: string;
-  email_lead: string;
-  email_closer: string;
-  dateTime: string;
-  tentativas: string | null;
-  'atendido?': string | null;
-  'Reuniao_marcada?': string;
-  Duracao?: number;
-  Custo_total?: number;
-  Data_horario_ligação?: string;
-  Resumo_ligação?: string;
-  Sentimento_do_usuário?: string;
-  Nome?: string;
-  Numero?: string;
-}
+import { Lead } from '../types/lead';
 
 interface LeadDetailPanelProps {
   lead: Lead | null;

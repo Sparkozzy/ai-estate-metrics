@@ -1,19 +1,7 @@
 
 import React from 'react';
 import { CheckCircle, XCircle, Clock, Mail } from 'lucide-react';
-
-interface Lead {
-  id: number;
-  created_at: string;
-  email_lead: string;
-  email_closer: string;
-  dateTime: string;
-  tentativas: string | null;
-  'atendido?': string | null;
-  'Reuniao_marcada?': string;
-  Nome?: string;
-  Numero?: string;
-}
+import { Lead } from '../types/lead';
 
 interface LeadsTableProps {
   leads: Lead[];
