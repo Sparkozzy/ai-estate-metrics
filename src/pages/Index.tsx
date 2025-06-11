@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { TrendingUp, Phone, PhoneCall, Calendar, Target, Clock, BarChart3, DollarSign } from 'lucide-react';
 import MetricsCard from '../components/MetricsCard';
@@ -504,5 +505,3 @@ const Index = () => {
 };
 
 export default Index;
-
-</edits_to_apply>
