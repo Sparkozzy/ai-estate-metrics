@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { X, Mail, Phone, Clock, DollarSign, MessageSquare, Heart, Calendar, CheckCircle, XCircle } from 'lucide-react';
 import { Lead } from '../types/lead';
@@ -126,7 +125,7 @@ const LeadDetailPanel: React.FC<LeadDetailPanelProps> = ({ lead, onClose }) => {
           {/* Meeting Status */}
           <div className="bg-purple-50 p-4 rounded-lg">
             <h3 className="text-sm font-medium text-gray-900 mb-3">Status da Reunião</h3>
-            {getMeetingStatus(lead['Reuniao_marcada?'])}
+            {getMeetingStatus(lead.reuniao_marcada)}
           </div>
 
           {/* Last Call Date */}

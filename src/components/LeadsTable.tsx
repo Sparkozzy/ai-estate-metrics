@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { CheckCircle, XCircle, Clock, Mail } from 'lucide-react';
 import { Lead } from '../types/lead';
@@ -105,7 +104,7 @@ const LeadsTable: React.FC<LeadsTableProps> = ({ leads }) => {
                 )}
               </td>
               <td className="px-6 py-4 whitespace-nowrap">
-                {getStatusBadge(lead['Reuniao_marcada?'])}
+                {getStatusBadge(lead.reuniao_marcada)}
               </td>
             </tr>
           ))}

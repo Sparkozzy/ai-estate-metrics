@@ -22,8 +22,8 @@ const mockLeads: Lead[] = [
     email_closer: 'patrick.borges@renatoparanhos.com.br',
     dateTime: '2025-05-28T17:00:00-03:00',
     tentativas: '3',
-    'atendido?': 'Sim',
-    'Reuniao_marcada?': 'Sim',
+    atendido: 'Sim',
+    reuniao_marcada: 'Sim',
     Duracao: 180,
     Custo_total: 45,
     Data_horario_ligação: '2025-05-28T17:00:00-03:00',
@@ -39,8 +39,8 @@ const mockLeads: Lead[] = [
     email_closer: '—',
     dateTime: '—',
     tentativas: '1',
-    'atendido?': 'Não',
-    'Reuniao_marcada?': '—',
+    atendido: 'Não',
+    reuniao_marcada: '—',
     Duracao: 30,
     Custo_total: 12,
     Data_horario_ligação: '2025-05-29T14:30:00-03:00',
@@ -56,8 +56,8 @@ const mockLeads: Lead[] = [
     email_closer: '—',
     dateTime: '—',
     tentativas: '2',
-    'atendido?': 'Sim',
-    'Reuniao_marcada?': '—',
+    atendido: 'Sim',
+    reuniao_marcada: '—',
     Duracao: 120,
     Custo_total: 25,
     Data_horario_ligação: '2025-05-29T15:15:00-03:00',
@@ -73,8 +73,8 @@ const mockLeads: Lead[] = [
     email_closer: '—',
     dateTime: '—',
     tentativas: '1',
-    'atendido?': 'Não',
-    'Reuniao_marcada?': '—',
+    atendido: 'Não',
+    reuniao_marcada: '—',
     Duracao: 45,
     Custo_total: 15,
     Data_horario_ligação: '2025-05-29T16:00:00-03:00',
@@ -90,8 +90,8 @@ const mockLeads: Lead[] = [
     email_closer: '—',
     dateTime: '—',
     tentativas: '2',
-    'atendido?': 'Sim',
-    'Reuniao_marcada?': '—',
+    atendido: 'Sim',
+    reuniao_marcada: '—',
     Duracao: 210,
     Custo_total: 52,
     Data_horario_ligação: '2025-05-29T16:45:00-03:00',
@@ -107,8 +107,8 @@ const mockLeads: Lead[] = [
     email_closer: 'closer@company.com',
     dateTime: '2025-05-30T10:00:00-03:00',
     tentativas: '2',
-    'atendido?': 'Sim',
-    'Reuniao_marcada?': 'Sim',
+    atendido: 'Sim',
+    reuniao_marcada: 'Sim',
     Duracao: 300,
     Custo_total: 75,
     Data_horario_ligação: '2025-05-28T14:30:00-03:00',
@@ -124,8 +124,8 @@ const mockLeads: Lead[] = [
     email_closer: '—',
     dateTime: '—',
     tentativas: '3',
-    'atendido?': 'Não',
-    'Reuniao_marcada?': '—',
+    atendido: 'Não',
+    reuniao_marcada: '—',
     Duracao: 60,
     Custo_total: 18,
     Data_horario_ligação: '2025-05-28T16:45:00-03:00',
@@ -252,8 +252,8 @@ const Index = () => {
 
   // Calculate existing funnel metrics with updated field names
   const totalCalls = filteredLeads.reduce((sum, lead) => sum + (parseInt(lead.tentativas || '0') || 0), 0);
-  const answeredCalls = filteredLeads.filter(lead => lead['atendido?'] === 'Sim').length;
-  const meetingsScheduled = filteredLeads.filter(lead => lead['Reuniao_marcada?'] === 'Sim').length;
+  const answeredCalls = filteredLeads.filter(lead => lead.atendido === 'Sim').length;
+  const meetingsScheduled = filteredLeads.filter(lead => lead.reuniao_marcada === 'Sim').length;
   
   const answerRate = totalCalls > 0 ? ((answeredCalls / totalCalls) * 100).toFixed(1) : '0';
   const conversionRate = answeredCalls > 0 ? ((meetingsScheduled / answeredCalls) * 100).toFixed(1) : '0';
@@ -286,7 +286,7 @@ const Index = () => {
     setFilteredLeads(filtered);
   }, [dateRange, leads]);
 
-  // Simulate real-time updates (keep for demo purposes)
+  // Simulate real-time updates with the updated field names
   useEffect(() => {
     const interval = setInterval(() => {
       if (Math.random() > 0.95) {
@@ -297,8 +297,8 @@ const Index = () => {
           email_closer: '—',
           dateTime: '—',
           tentativas: String(Math.floor(Math.random() * 3) + 1),
-          'atendido?': Math.random() > 0.5 ? 'Sim' : 'Não',
-          'Reuniao_marcada?': '—',
+          atendido: Math.random() > 0.5 ? 'Sim' : 'Não',
+          reuniao_marcada: '—',
           Duracao: Math.floor(Math.random() * 240) + 30,
           Custo_total: Math.floor(Math.random() * 60) + 10,
           Data_horario_ligação: new Date().toISOString(),

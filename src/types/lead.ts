@@ -6,8 +6,8 @@ export interface Lead {
   email_closer: string;
   dateTime: string;
   tentativas: string | null;
-  'atendido?': string | null;
-  'Reuniao_marcada?': string;
+  atendido: string | null;
+  reuniao_marcada: string;
   Duracao?: number;
   Custo_total?: number;
   Data_horario_ligação?: string;
