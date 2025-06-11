@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { CheckCircle, XCircle, Clock, Mail } from 'lucide-react';
 import { Lead } from '../types/lead';
@@ -18,7 +19,7 @@ const LeadsTable: React.FC<LeadsTableProps> = ({ leads }) => {
     });
   };
 
-  const getStatusBadge = (reuniaoMarcada: string) => {
+  const getStatusBadge = (reuniaoMarcada: string | null) => {
     if (reuniaoMarcada === 'Sim') {
       return (
         <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
@@ -104,7 +105,7 @@ const LeadsTable: React.FC<LeadsTableProps> = ({ leads }) => {
                 )}
               </td>
               <td className="px-6 py-4 whitespace-nowrap">
-                {getStatusBadge(lead.reuniao_marcada)}
+                {getStatusBadge(lead['Reuniao_marcada?'])}
               </td>
             </tr>
           ))}
