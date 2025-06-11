@@ -2,17 +2,17 @@
 export interface Lead {
   id: number;
   created_at: string;
-  email_lead: string;
-  email_closer: string;
-  dateTime: string;
+  email_lead: string | null;
+  email_closer: string | null;
+  dateTime: string | null;
   tentativas: string | null;
   atendido: string | null;
-  reuniao_marcada: string;
-  Duracao?: number;
-  Custo_total?: number;
-  Data_horario_ligação?: string;
-  Resumo_ligação?: string;
-  Sentimento_do_usuário?: string;
-  Nome?: string;
-  Numero?: string;
+  reuniao_marcada: string | null;
+  Duracao?: number | null;
+  Custo_total?: number | null;
+  Data_horario_ligação?: string | null;
+  Resumo_ligação?: string | null;
+  Sentimento_do_usuário?: string | null;
+  Nome?: string | null;
+  Numero?: string | null;
 }

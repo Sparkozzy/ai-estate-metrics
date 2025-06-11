@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Search, X } from 'lucide-react';
 import { Input } from '@/components/ui/input';
@@ -74,7 +73,7 @@ const SearchLeads: React.FC<SearchLeadsProps> = ({ leads, onSelectLead, selected
                   {lead.email_lead}
                 </div>
                 <div className="text-xs text-gray-500">
-                  ID: {lead.id} • Tentativas: {lead.tentativas || 0}
+                  ID: {lead.id} • Tentativas: {lead.tentativas || '0'}
                 </div>
               </button>
             ))
