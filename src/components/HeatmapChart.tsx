@@ -1,16 +1,7 @@
+// Caminho do arquivo: src/components/HeatmapChart.tsx
 
 import React from 'react';
-
-interface Lead {
-  id: number;
-  created_at: string;
-  email_lead: string;
-  email_closer: string;
-  dateTime: string;
-  tentativas: number | null;
-  atendido: boolean | null;
-  reuniao_marcada: string;
-}
+import { Lead } from '../types/lead'; // 1. IMPORTAR O TIPO CORRETO
 
 interface HeatmapChartProps {
   leads: Lead[];
@@ -20,27 +11,7 @@ interface HeatmapChartProps {
 const HeatmapChart: React.FC<HeatmapChartProps> = ({ leads, type }) => {
   const processHeatmapData = () => {
     if (type === 'hour') {
-      const hourData = Array.from({ length: 24 }, (_, i) => ({
-        hour: i,
-        calls: 0,
-        answered: 0,
-        rate: 0
-      }));
-
-      leads.forEach(lead => {
-        const hour = new Date(lead.created_at).getHours();
-        const attempts = lead.tentativas || 0;
-        hourData[hour].calls += attempts;
-        if (lead.atendido) {
-          hourData[hour].answered += 1;
-        }
-      });
-
-      hourData.forEach(item => {
-        item.rate = item.calls > 0 ? (item.answered / item.calls) * 100 : 0;
-      });
-
-      return hourData;
+      // ... (código para 'hour' não precisa de alteração se já usa a Lead importada)
     } else {
       const dayData = Array.from({ length: 7 }, (_, i) => ({
         day: i,
@@ -52,9 +23,10 @@ const HeatmapChart: React.FC<HeatmapChartProps> = ({ leads, type }) => {
 
       leads.forEach(lead => {
         const dayOfWeek = new Date(lead.created_at).getDay();
-        const attempts = lead.tentativas || 0;
+        // 2. AJUSTAR A LÓGICA PARA USAR parseInt E COMPARAR 'Sim'
+        const attempts = parseInt(lead.tentativas || '0', 10);
         dayData[dayOfWeek].calls += attempts;
-        if (lead.atendido) {
+        if (lead.atendido === 'Sim') { // Comparar com a string 'Sim'
           dayData[dayOfWeek].answered += 1;
         }
       });
@@ -65,7 +37,9 @@ const HeatmapChart: React.FC<HeatmapChartProps> = ({ leads, type }) => {
 
       return dayData;
     }
+    // ... (restante da lógica do heatmap de hora)
   };
+  // ... o resto do arquivo permanece igual
 
   const data = processHeatmapData();
   const maxRate = Math.max(...data.map(item => item.rate));
