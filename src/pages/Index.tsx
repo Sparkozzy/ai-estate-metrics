@@ -138,8 +138,9 @@ const mockLeads: Lead[] = [
 ];
 
 const Index = () => {
-  const [leads, setLeads] = useState<Lead[]>(mockLeads);
-  const [filteredLeads, setFilteredLeads] = useState<Lead[]>(mockLeads);
+// Linha 127: Alterar de mockLeads para um array vazio []
+  const [leads, setLeads] = useState<Lead[]>([]);
+  const [filteredLeads, setFilteredLeads] = useState<Lead[]>([]);
   const [dateRange, setDateRange] = useState({ start: '', end: '' });
   const [selectedLead, setSelectedLead] = useState<Lead | null>(null);
   const [isRealTimeConnected, setIsRealTimeConnected] = useState(false);
@@ -287,38 +288,7 @@ const Index = () => {
     setFilteredLeads(filtered);
   }, [dateRange, leads]);
 
-  // Simulate real-time updates with the updated field names
-  useEffect(() => {
-    const interval = setInterval(() => {
-      if (Math.random() > 0.95) {
-        const newLead: Lead = {
-          id: leads.length + 1,
-          created_at: new Date().toISOString(),
-          email_lead: `lead${Date.now()}@example.com`,
-          email_closer: '—',
-          dateTime: '—',
-          tentativas: String(Math.floor(Math.random() * 3) + 1),
-          atendido: Math.random() > 0.5 ? 'Sim' : 'Não',
-          reuniao_marcada: '—',
-          Duracao: Math.floor(Math.random() * 240) + 30,
-          Custo_total: Math.floor(Math.random() * 60) + 10,
-          Data_horario_ligação: new Date().toISOString(),
-          Nome: `Lead ${Date.now()}`,
-          Numero: `+5511${Math.floor(Math.random() * 100000000)}`,
-          Resumo_ligação: 'Tentativa automatizada',
-          Sentimento_do_usuário: 'Neutro'
-        };
-        setLeads(prev => [newLead, ...prev]);
-        toast({
-          title: "Nova Atividade do Agente IA",
-          description: `Tentativa de contato realizada`,
-          duration: 3000,
-        });
-      }
-    }, 15000);
-
-    return () => clearInterval(interval);
-  }, [leads.length, toast]);
+  // Simulate real-time updates with the updated field names (Removed)
 
   return (
     <div className="min-h-screen bg-gray-50">
