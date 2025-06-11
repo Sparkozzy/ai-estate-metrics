@@ -6,8 +6,8 @@ export interface Lead {
   email_closer: string | null;
   dateTime: string | null;
   tentativas: string | null;
-  atendido: string | null;
-  reuniao_marcada: string | null;
+  'atendido?': string | null;  // Note the question mark in the database field name
+  'Reuniao_marcada?': string | null;  // Note the question mark in the database field name
   Duracao?: number | null;
   Custo_total?: number | null;
   Data_horario_ligação?: string | null;

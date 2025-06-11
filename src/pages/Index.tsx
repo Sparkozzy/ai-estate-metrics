@@ -14,7 +14,7 @@ import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { Lead } from '../types/lead';
 
-// Updated mock data to match the Lead interface exactly
+// Updated mock data to match the Lead interface exactly with correct field names
 const mockLeads: Lead[] = [
   {
     id: 1,
@@ -23,8 +23,8 @@ const mockLeads: Lead[] = [
     email_closer: 'patrick.borges@renatoparanhos.com.br',
     dateTime: '2025-05-28T17:00:00-03:00',
     tentativas: '3',
-    atendido: 'Sim',
-    reuniao_marcada: 'Sim',
+    'atendido?': 'Sim',
+    'Reuniao_marcada?': 'Sim',
     Duracao: 180,
     Custo_total: 45,
     Data_horario_ligação: '2025-05-28T17:00:00-03:00',
@@ -40,8 +40,8 @@ const mockLeads: Lead[] = [
     email_closer: '—',
     dateTime: '—',
     tentativas: '1',
-    atendido: 'Não',
-    reuniao_marcada: '—',
+    'atendido?': 'Não',
+    'Reuniao_marcada?': '—',
     Duracao: 30,
     Custo_total: 12,
     Data_horario_ligação: '2025-05-29T14:30:00-03:00',
@@ -57,8 +57,8 @@ const mockLeads: Lead[] = [
     email_closer: '—',
     dateTime: '—',
     tentativas: '2',
-    atendido: 'Sim',
-    reuniao_marcada: '—',
+    'atendido?': 'Sim',
+    'Reuniao_marcada?': '—',
     Duracao: 120,
     Custo_total: 25,
     Data_horario_ligação: '2025-05-29T15:15:00-03:00',
@@ -66,74 +66,6 @@ const mockLeads: Lead[] = [
     Numero: '+55118888888',
     Resumo_ligação: 'Conversou mas não se interessou',
     Sentimento_do_usuário: 'Negativo'
-  },
-  {
-    id: 4,
-    created_at: '2025-05-29T20:29:01',
-    email_lead: 'fryan3201@gmail.com',
-    email_closer: '—',
-    dateTime: '—',
-    tentativas: '1',
-    atendido: 'Não',
-    reuniao_marcada: '—',
-    Duracao: 45,
-    Custo_total: 15,
-    Data_horario_ligação: '2025-05-29T16:00:00-03:00',
-    Nome: 'Ryan F',
-    Numero: '+55118888888',
-    Resumo_ligação: 'Não atendeu',
-    Sentimento_do_usuário: 'Neutro'
-  },
-  {
-    id: 5,
-    created_at: '2025-05-29T20:31:18',
-    email_lead: 'fafc.mkt@gmail.com',
-    email_closer: '—',
-    dateTime: '—',
-    tentativas: '2',
-    atendido: 'Sim',
-    reuniao_marcada: '—',
-    Duracao: 210,
-    Custo_total: 52,
-    Data_horario_ligação: '2025-05-29T16:45:00-03:00',
-    Nome: 'FAFC Marketing',
-    Numero: '+55117777777',
-    Resumo_ligação: 'Interessado mas precisa avaliar',
-    Sentimento_do_usuário: 'Positivo'
-  },
-  {
-    id: 6,
-    created_at: '2025-05-28T14:30:00',
-    email_lead: 'test1@example.com',
-    email_closer: 'closer@company.com',
-    dateTime: '2025-05-30T10:00:00-03:00',
-    tentativas: '2',
-    atendido: 'Sim',
-    reuniao_marcada: 'Sim',
-    Duracao: 300,
-    Custo_total: 75,
-    Data_horario_ligação: '2025-05-28T14:30:00-03:00',
-    Nome: 'Teste Um',
-    Numero: '+55116666666',
-    Resumo_ligação: 'Muito interessado, reunião marcada',
-    Sentimento_do_usuário: 'Muito Positivo'
-  },
-  {
-    id: 7,
-    created_at: '2025-05-28T16:45:00',
-    email_lead: 'test2@example.com',
-    email_closer: '—',
-    dateTime: '—',
-    tentativas: '3',
-    atendido: 'Não',
-    reuniao_marcada: '—',
-    Duracao: 60,
-    Custo_total: 18,
-    Data_horario_ligação: '2025-05-28T16:45:00-03:00',
-    Nome: 'Teste Dois',
-    Numero: '+55115555555',
-    Resumo_ligação: 'Múltiplas tentativas sem sucesso',
-    Sentimento_do_usuário: 'Neutro'
   }
 ];
 
@@ -251,10 +183,10 @@ const Index = () => {
     };
   }, [toast]);
 
-  // Calculate existing funnel metrics with updated field names
+  // Calculate existing funnel metrics with correct field names
   const totalCalls = filteredLeads.reduce((sum, lead) => sum + (parseInt(lead.tentativas || '0') || 0), 0);
-  const answeredCalls = filteredLeads.filter(lead => lead.atendido === 'Sim').length;
-  const meetingsScheduled = filteredLeads.filter(lead => lead.reuniao_marcada === 'Sim').length;
+  const answeredCalls = filteredLeads.filter(lead => lead['atendido?'] === 'Sim').length;
+  const meetingsScheduled = filteredLeads.filter(lead => lead['Reuniao_marcada?'] === 'Sim').length;
   
   const answerRate = totalCalls > 0 ? ((answeredCalls / totalCalls) * 100).toFixed(1) : '0';
   const conversionRate = answeredCalls > 0 ? ((meetingsScheduled / answeredCalls) * 100).toFixed(1) : '0';
@@ -287,7 +219,7 @@ const Index = () => {
     setFilteredLeads(filtered);
   }, [dateRange, leads]);
 
-  // Simulate real-time updates with the updated field names
+  // Simulate real-time updates with the correct field names
   useEffect(() => {
     const interval = setInterval(() => {
       if (Math.random() > 0.95) {
@@ -298,8 +230,8 @@ const Index = () => {
           email_closer: '—',
           dateTime: '—',
           tentativas: String(Math.floor(Math.random() * 3) + 1),
-          atendido: Math.random() > 0.5 ? 'Sim' : 'Não',
-          reuniao_marcada: '—',
+          'atendido?': Math.random() > 0.5 ? 'Sim' : 'Não',
+          'Reuniao_marcada?': '—',
           Duracao: Math.floor(Math.random() * 240) + 30,
           Custo_total: Math.floor(Math.random() * 60) + 10,
           Data_horario_ligação: new Date().toISOString(),
