@@ -1,20 +1,8 @@
 
+
 import React from 'react';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
-
-interface Lead {
-  id: number;
-  created_at: string;
-  email_lead: string;
-  email_closer: string;
-  dateTime: string;
-  tentativas: number | null;
-  atendido: boolean | null;
-  reuniao_marcada: string;
-  duracao?: number | null;
-  custo_total?: number | null;
-  data_horario_ligacao?: string;
-}
+import { Lead } from '../types/lead'; // 1. IMPORTAR O TIPO CORRETO
 
 interface CostDurationChartProps {
   leads: Lead[];
