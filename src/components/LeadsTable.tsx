@@ -1,6 +1,17 @@
+
 import React from 'react';
 import { CheckCircle, XCircle, Clock, Mail } from 'lucide-react';
-import { Lead } from '../types/lead';
+
+interface Lead {
+  id: number;
+  created_at: string;
+  email_lead: string;
+  email_closer: string;
+  dateTime: string;
+  tentativas: number | null;
+  atendido: boolean | null;
+  reuniao_marcada: string;
+}
 
 interface LeadsTableProps {
   leads: Lead[];
@@ -88,7 +99,7 @@ const LeadsTable: React.FC<LeadsTableProps> = ({ leads }) => {
               </td>
               <td className="px-6 py-4 whitespace-nowrap">
                 <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
-                  {lead.tentativas || '0'} tentativas
+                  {lead.tentativas || 0} tentativas
                 </span>
               </td>
               <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">

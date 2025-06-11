@@ -1,5 +1,6 @@
 
 import React from 'react';
+import { BarChart, Bar, XAxis, YAxis, ResponsiveContainer, Cell } from 'recharts';
 
 interface FunnelChartProps {
   totalCalls: number;
@@ -17,84 +18,95 @@ const FunnelChart: React.FC<FunnelChartProps> = ({
       name: 'Ligações Realizadas',
       value: totalCalls,
       percentage: 100,
-      color: '#3b82f6',
-      width: 100
+      color: '#3b82f6'
     },
     {
       name: 'Ligações Atendidas',
       value: answeredCalls,
       percentage: totalCalls > 0 ? (answeredCalls / totalCalls) * 100 : 0,
-      color: '#10b981',
-      width: 75
+      color: '#10b981'
     },
     {
       name: 'Reuniões Marcadas',
       value: meetingsScheduled,
       percentage: totalCalls > 0 ? (meetingsScheduled / totalCalls) * 100 : 0,
-      color: '#f59e0b',
-      width: 50
+      color: '#f59e0b'
     }
   ];
 
+  const CustomTooltip = ({ active, payload }: any) => {
+    if (active && payload && payload.length) {
+      const data = payload[0].payload;
+      return (
+        <div className="bg-white p-3 border border-gray-200 rounded-lg shadow-lg">
+          <p className="font-medium text-gray-900 mb-1">{data.name}</p>
+          <p className="text-sm text-gray-600">Valor: {data.value}</p>
+          <p className="text-sm text-gray-600">Taxa: {data.percentage.toFixed(1)}%</p>
+        </div>
+      );
+    }
+    return null;
+  };
+
   return (
-    <div className="space-y-8">
-      {/* Funil Visual Centralizado */}
-      <div className="space-y-6">
+    <div className="space-y-6">
+      {/* Visual Funnel */}
+      <div className="space-y-3">
         {data.map((item, index) => (
-          <div key={item.name} className="space-y-3">
-            <div className="text-center">
-              <div className="text-sm font-medium text-gray-700 mb-1">{item.name}</div>
-              <div className="space-x-2">
-                <span className="text-2xl font-bold text-gray-900">{item.value}</span>
-                <span className="text-sm text-gray-500">({item.percentage.toFixed(1)}%)</span>
+          <div key={item.name} className="space-y-2">
+            <div className="flex justify-between items-center">
+              <span className="text-sm font-medium text-gray-700">{item.name}</span>
+              <div className="text-right">
+                <span className="text-lg font-semibold text-gray-900">{item.value}</span>
+                <span className="text-sm text-gray-500 ml-2">({item.percentage.toFixed(1)}%)</span>
               </div>
             </div>
-            
-            {/* Barra Centralizada com Largura Decrescente */}
-            <div className="flex justify-center">
-              <div className="relative">
-                <div 
-                  className="h-12 rounded-lg transition-all duration-500 shadow-sm"
-                  style={{ 
-                    backgroundColor: item.color,
-                    width: `${item.width * 3}px`,
-                    opacity: 0.9
-                  }}
-                />
-                
-                {/* Indicador de Conversão */}
-                {index < data.length - 1 && (
-                  <div className="absolute -bottom-8 left-1/2 transform -translate-x-1/2">
-                    <div className="flex flex-col items-center">
-                      <div className="text-xs text-gray-400 mb-1">
-                        ↓ {((data[index + 1].value / item.value) * 100).toFixed(1)}%
-                      </div>
-                    </div>
-                  </div>
-                )}
-              </div>
+            <div className="relative">
+              <div 
+                className="h-8 rounded-lg transition-all duration-300"
+                style={{ 
+                  backgroundColor: item.color,
+                  width: `${Math.max(item.percentage, 10)}%`,
+                  opacity: 0.8
+                }}
+              />
+              {index < data.length - 1 && (
+                <div className="absolute right-0 top-full mt-1 text-xs text-gray-400">
+                  ↓ {((data[index + 1].value / item.value) * 100).toFixed(1)}% conversão
+                </div>
+              )}
             </div>
           </div>
         ))}
       </div>
 
-      {/* Resumo das Taxas de Conversão */}
-      <div className="bg-gray-50 rounded-lg p-4 space-y-2">
-        <div className="text-center text-xs font-medium text-gray-600 mb-3">Taxas de Conversão</div>
-        <div className="grid grid-cols-2 gap-4 text-center">
-          <div>
-            <div className="text-lg font-semibold text-blue-600">
-              {totalCalls > 0 ? ((answeredCalls / totalCalls) * 100).toFixed(1) : '0'}%
-            </div>
-            <div className="text-xs text-gray-500">Taxa de Atendimento</div>
-          </div>
-          <div>
-            <div className="text-lg font-semibold text-amber-600">
-              {answeredCalls > 0 ? ((meetingsScheduled / answeredCalls) * 100).toFixed(1) : '0'}%
-            </div>
-            <div className="text-xs text-gray-500">Conversão para Reunião</div>
-          </div>
-        </div>
+      {/* Bar Chart */}
+      <div className="h-40">
+        <ResponsiveContainer width="100%" height="100%">
+          <BarChart data={data} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
+            <XAxis 
+              dataKey="name" 
+              stroke="#64748b" 
+              fontSize={12}
+              tickLine={false}
+              axisLine={false}
+              angle={-45}
+              textAnchor="end"
+              height={60}
+            />
+            <YAxis 
+              stroke="#64748b" 
+              fontSize={12}
+              tickLine={false}
+              axisLine={false}
+            />
+            <Bar dataKey="value" radius={[4, 4, 0, 0]}>
+              {data.map((entry, index) => (
+                <Cell key={`cell-${index}`} fill={entry.color} />
+              ))}
+            </Bar>
+          </BarChart>
+        </ResponsiveContainer>
       </div>
     </div>
   );
