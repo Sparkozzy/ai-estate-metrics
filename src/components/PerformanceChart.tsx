@@ -1,24 +1,14 @@
+// Caminho do arquivo: src/components/PerformanceChart.tsx
 
 import React from 'react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
-
-interface Lead {
-  id: number;
-  created_at: string;
-  email_lead: string;
-  email_closer: string;
-  dateTime: string;
-  tentativas: number | null;
-  atendido: boolean | null;
-  reuniao_marcada: string;
-}
+import { Lead } from '../types/lead'; // 1. IMPORTAR O TIPO CORRETO
 
 interface PerformanceChartProps {
   leads: Lead[];
 }
 
 const PerformanceChart: React.FC<PerformanceChartProps> = ({ leads }) => {
-  // Process data for the last 7 days
   const processChartData = () => {
     const last7Days = [];
     const today = new Date();
@@ -35,11 +25,17 @@ const PerformanceChart: React.FC<PerformanceChartProps> = ({ leads }) => {
       
       const meetings = dayLeads.filter(lead => lead.reuniao_marcada === 'Sim').length;
       
+      // 2. AJUSTAR A LÓGICA DE 'attempts' PARA CONVERTER O TEXTO PARA NÚMERO
+      const attempts = dayLeads.filter(lead => {
+        const numTentativas = parseInt(lead.tentativas || '0', 10);
+        return numTentativas > 0;
+      }).length;
+
       last7Days.push({
         date: date.toLocaleDateString('pt-BR', { weekday: 'short', day: '2-digit' }),
         leads: dayLeads.length,
         meetings: meetings,
-        attempts: dayLeads.filter(lead => lead.tentativas && lead.tentativas > 0).length
+        attempts: attempts
       });
     }
     
