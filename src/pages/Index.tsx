@@ -1,6 +1,5 @@
-
 import React, { useState, useEffect } from 'react';
-import { TrendingUp, Phone, PhoneCall, Calendar, Target, Clock, BarChart3, DollarSign, Wifi, WifiOff } from 'lucide-react';
+import { TrendingUp, Phone, PhoneCall, Calendar, Target, Clock, BarChart3, DollarSign } from 'lucide-react';
 import MetricsCard from '../components/MetricsCard';
 import PerformanceChart from '../components/PerformanceChart';
 import FunnelChart from '../components/FunnelChart';
@@ -9,7 +8,7 @@ import CostDurationChart from '../components/CostDurationChart';
 import DateFilter from '../components/DateFilter';
 import SearchLeads from '../components/SearchLeads';
 import LeadDetailPanel from '../components/LeadDetailPanel';
-import { Button } from '@/components/ui/button';
+import DeveloperReport from '../components/DeveloperReport';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { Lead } from '../types/lead';
@@ -142,7 +141,7 @@ const Index = () => {
   const [filteredLeads, setFilteredLeads] = useState<Lead[]>(mockLeads);
   const [dateRange, setDateRange] = useState({ start: '', end: '' });
   const [selectedLead, setSelectedLead] = useState<Lead | null>(null);
-  const [isRealTimeEnabled, setIsRealTimeEnabled] = useState(false);
+  const [isRealTimeConnected, setIsRealTimeConnected] = useState(false);
   const [realtimeChannel, setRealtimeChannel] = useState<any>(null);
   const { toast } = useToast();
 
@@ -183,81 +182,73 @@ const Index = () => {
     loadLeadsFromSupabase();
   }, [toast]);
 
-  // Real-time subscription toggle
-  const toggleRealTime = async () => {
-    if (isRealTimeEnabled) {
-      // Disable real-time
-      if (realtimeChannel) {
-        await supabase.removeChannel(realtimeChannel);
-        setRealtimeChannel(null);
-      }
-      setIsRealTimeEnabled(false);
-      toast({
-        title: "Tempo real desabilitado",
-        description: "A sincronização automática foi desativada.",
-      });
-    } else {
-      // Enable real-time
-      const channel = supabase
-        .channel('retell-leads-realtime')
-        .on(
-          'postgres_changes',
-          {
-            event: '*',
-            schema: 'public',
-            table: 'Retell_Leads'
-          },
-          async (payload) => {
-            console.log('Real-time update received:', payload);
-            
-            // Reload all data to ensure consistency
-            try {
-              const { data, error } = await supabase
-                .from('Retell_Leads')
-                .select('*')
-                .order('created_at', { ascending: false });
-
-              if (!error && data) {
-                setLeads(data as Lead[]);
-                toast({
-                  title: "Dados atualizados",
-                  description: "Nova atividade detectada no banco de dados.",
-                  duration: 3000,
-                });
-              }
-            } catch (err) {
-              console.error('Error reloading data:', err);
-            }
-          }
-        )
-        .subscribe((status) => {
-          console.log('Real-time subscription status:', status);
-          if (status === 'SUBSCRIBED') {
-            setIsRealTimeEnabled(true);
-            setRealtimeChannel(channel);
-            toast({
-              title: "Tempo real ativado",
-              description: "O dashboard será atualizado automaticamente.",
-            });
-          } else if (status === 'CHANNEL_ERROR') {
-            toast({
-              title: "Erro na conexão em tempo real",
-              description: "Não foi possível ativar a sincronização automática.",
-              variant: "destructive",
-            });
-          }
-        });
-    }
-  };
-
-  // Cleanup on unmount
+  // Automatic real-time connection on component mount
   useEffect(() => {
+    const setupRealTimeConnection = async () => {
+      try {
+        console.log('Setting up automatic real-time connection...');
+        
+        const channel = supabase
+          .channel('retell-leads-realtime-auto')
+          .on(
+            'postgres_changes',
+            {
+              event: '*',
+              schema: 'public',
+              table: 'Retell_Leads'
+            },
+            async (payload) => {
+              console.log('Real-time update received:', payload);
+              
+              // Reload all data to ensure consistency
+              try {
+                const { data, error } = await supabase
+                  .from('Retell_Leads')
+                  .select('*')
+                  .order('created_at', { ascending: false });
+
+                if (!error && data) {
+                  setLeads(data as Lead[]);
+                  toast({
+                    title: "Dados atualizados",
+                    description: "Nova atividade detectada automaticamente.",
+                    duration: 3000,
+                  });
+                }
+              } catch (err) {
+                console.error('Error reloading data:', err);
+              }
+            }
+          )
+          .subscribe((status) => {
+            console.log('Real-time subscription status:', status);
+            if (status === 'SUBSCRIBED') {
+              setIsRealTimeConnected(true);
+              setRealtimeChannel(channel);
+              toast({
+                title: "Tempo real ativado",
+                description: "Dashboard conectado automaticamente ao banco de dados.",
+                duration: 4000,
+              });
+            } else if (status === 'CHANNEL_ERROR') {
+              console.error('Real-time connection failed');
+              setIsRealTimeConnected(false);
+            }
+          });
+      } catch (error) {
+        console.error('Failed to setup real-time connection:', error);
+      }
+    };
+
+    setupRealTimeConnection();
+
+    // Cleanup on unmount
     return () => {
       if (realtimeChannel) {
         supabase.removeChannel(realtimeChannel);
       }
     };
-  }, [realtimeChannel]);
+  }, [toast]);
 
   // Calculate existing funnel metrics with updated field names
   const totalCalls = filteredLeads.reduce((sum, lead) => sum + (parseInt(lead.tentativas || '0') || 0), 0);
@@ -295,7 +286,7 @@ const Index = () => {
     setFilteredLeads(filtered);
   }, [dateRange, leads]);
 
-  // Simulate real-time updates
+  // Simulate real-time updates (keep for demo purposes)
   useEffect(() => {
     const interval = setInterval(() => {
       if (Math.random() > 0.95) {
@@ -349,22 +340,9 @@ const Index = () => {
                 onSelectLead={setSelectedLead}
                 selectedLead={selectedLead}
               />
-              <Button
-                onClick={toggleRealTime}
-                variant={isRealTimeEnabled ? "default" : "outline"}
-                size="sm"
-                className="flex items-center space-x-2"
-              >
-                {isRealTimeEnabled ? (
-                  <Wifi className="w-4 h-4" />
-                ) : (
-                  <WifiOff className="w-4 h-4" />
-                )}
-                <span>{isRealTimeEnabled ? 'Tempo Real ON' : 'Tempo Real OFF'}</span>
-              </Button>
               <div className="flex items-center space-x-2 text-sm text-gray-500">
-                <div className={`w-2 h-2 rounded-full ${isRealTimeEnabled ? 'bg-green-500 animate-pulse' : 'bg-gray-400'}`}></div>
-                <span>{isRealTimeEnabled ? 'Sincronizando' : 'Estático'}</span>
+                <div className={`w-2 h-2 rounded-full ${isRealTimeConnected ? 'bg-green-500 animate-pulse' : 'bg-gray-400'}`}></div>
+                <span>{isRealTimeConnected ? 'Tempo Real Ativo' : 'Conectando...'}</span>
               </div>
             </div>
           </div>
@@ -518,6 +496,9 @@ const Index = () => {
         lead={selectedLead} 
         onClose={() => setSelectedLead(null)} 
       />
+
+      {/* Developer Report */}
+      <DeveloperReport />
     </div>
   );
 };

@@ -24,6 +24,30 @@ export type Database = {
         }
         Relationships: []
       }
+      Dark: {
+        Row: {
+          created_at: string
+          id: number
+          narracao_1: string | null
+          narracao_2: string | null
+          narracao_3: string | null
+        }
+        Insert: {
+          created_at?: string
+          id?: number
+          narracao_1?: string | null
+          narracao_2?: string | null
+          narracao_3?: string | null
+        }
+        Update: {
+          created_at?: string
+          id?: number
+          narracao_1?: string | null
+          narracao_2?: string | null
+          narracao_3?: string | null
+        }
+        Relationships: []
+      }
       n8n_chat_histories: {
         Row: {
           id: number
